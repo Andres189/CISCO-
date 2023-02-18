@@ -1,33 +1,112 @@
 package com.example.application.views.list;
 
-import com.vaadin.flow.component.html.H2;
+import com.example.application.SAPDB;
+import com.vaadin.flow.component.Key;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.html.Image;
-import com.vaadin.flow.component.html.Paragraph;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.PasswordField;
+import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.theme.lumo.LumoUtility.Margin;
 
-@PageTitle("list")
+import java.sql.*;
+import java.time.DayOfWeek;
+
+@PageTitle("Login")
 @Route(value = "")
+
+
+
 public class ListView extends VerticalLayout {
+    String username = "DESKTOP-SVV986M\\Cristina";
+    String pass = "1234";
+    String url = "";
+Button btnEntrar = new Button("Entrar");
+TextField txtfUsuario = new TextField("Usuario:");
+PasswordField pswUsuario = new PasswordField("Contraseña:");
+Icon iconUsuario = new Icon("vaadin","user");
+Icon iconPass = new Icon("vaadin","lock");
+H2 headerMenu = new H2("Login");
+Button btnPracticas = new Button("Practicas");
+Button btnApartado = new Button("Apartado");
+
+ComboBox<DayOfWeek> comboDia = new ComboBox<>("Dia");
+
 
     public ListView() {
+        addClassNames("Login");
         setSpacing(false);
-
-        Image img = new Image("images/empty-plant.png", "placeholder plant");
-        img.setWidth("200px");
-        add(img);
-
-        H2 header = new H2("This place intentionally left empty");
-        header.addClassNames(Margin.Top.XLARGE, Margin.Bottom.MEDIUM);
-        add(header);
-        add(new Paragraph("It’s a place where you can grow your own UI 🤗"));
-
         setSizeFull();
+        //mostrar login
+        menuLogin();
+        //Evento boton ingresar
+        btnEntrar.addClickListener(Click ->{
+
+            if (SAPDB.Login(txtfUsuario.getValue(),pswUsuario.getValue(),SAPDB.Conexion())){
+                Notification dentro = Notification.show("Inicio de sesion exitoso");
+                dentro.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                removeAll();
+                menuBotonoes();
+            }else{
+                Notification error = Notification.show("Contraseña o usuario incorrectos");
+                error.addThemeVariants(NotificationVariant.LUMO_ERROR);
+                pswUsuario.clear();
+                pswUsuario.focus();
+            }
+        });
+
+
+    }
+    public void menuLogin(){
+        //Imagen login
+        Image img = new Image("images/login.png", "login");
+        img.setWidth("150px");
+        //Acomodar titulo login
+        headerMenu.addClassNames(Margin.Top.XLARGE,Margin.Bottom.MEDIUM);
+        //Layout login
+        VerticalLayout layoutMenu = new VerticalLayout(txtfUsuario,pswUsuario,btnEntrar);
+        //Iconos textfield y pswfield
+        txtfUsuario.setPrefixComponent(iconUsuario);
+        pswUsuario.setPrefixComponent(iconPass);
+        //shortcut entrar
+        btnEntrar.addClickShortcut(Key.ENTER);
+        //agregar elementos
+        add(
+                img,
+                layoutMenu,
+                headerMenu
+        );
+        //Ordenar componentes
         setJustifyContentMode(JustifyContentMode.CENTER);
         setDefaultHorizontalComponentAlignment(Alignment.CENTER);
+        layoutMenu.setDefaultHorizontalComponentAlignment(Alignment.CENTER);
         getStyle().set("text-align", "center");
+    }
+
+
+    public void menuBotonoes(){
+        //Creacion de layout para los botones practicas y apartado
+        HorizontalLayout layoutBotones = new HorizontalLayout(btnPracticas,btnApartado);
+        //agregar componentes
+        add(layoutBotones);
+        //Orden de botones de Practicas y Apartado
+        setJustifyContentMode(JustifyContentMode.START);
+        setMargin(true);
+
+    }
+
+    public void cuadroPracticas(){
+
+
     }
 
 }
