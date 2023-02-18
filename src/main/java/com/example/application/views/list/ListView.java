@@ -104,9 +104,4 @@ ComboBox<DayOfWeek> comboDia = new ComboBox<>("Dia");
 
     }
 
-    public void cuadroPracticas(){
-
-
-    }
-
 }
