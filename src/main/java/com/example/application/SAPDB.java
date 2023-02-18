@@ -14,8 +14,6 @@ public class SAPDB {
         try{
             Class.forName("com.mysql.cj.jdbc.Driver");
             con = DriverManager.getConnection("jdbc:mysql://localhost:3306/sapdb","root","");
-            //Notification exito = Notification.show("Conexion exitosa");
-            //exito.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
         }catch(ClassNotFoundException e){
             System.out.println(e);
         }catch(SQLException e){
