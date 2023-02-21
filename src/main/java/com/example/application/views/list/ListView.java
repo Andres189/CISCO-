@@ -81,9 +81,9 @@ ComboBox<DayOfWeek> comboDia = new ComboBox<>("Dia");
         btnEntrar.addClickShortcut(Key.ENTER);
         //agregar elementos
         add(
+                headerMenu,
                 img,
-                layoutMenu,
-                headerMenu
+                layoutMenu
         );
         //Ordenar componentes
         setJustifyContentMode(JustifyContentMode.CENTER);
