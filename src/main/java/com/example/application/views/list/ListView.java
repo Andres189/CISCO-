@@ -3,6 +3,7 @@ package com.example.application.views.list;
 import com.example.application.SAPDB;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.html.Image;
@@ -38,6 +39,8 @@ Icon iconPass = new Icon("vaadin","lock");
 H2 headerMenu = new H2("Login");
 Button btnPracticas = new Button("Practicas");
 Button btnApartado = new Button("Apartado");
+Icon iconPracticas = new Icon("vaadin","specialist");
+Icon iconApartado = new Icon("vaadin","calendar");
 
 ComboBox<DayOfWeek> comboDia = new ComboBox<>("Dia");
 
@@ -77,8 +80,9 @@ ComboBox<DayOfWeek> comboDia = new ComboBox<>("Dia");
         //Iconos textfield y pswfield
         txtfUsuario.setPrefixComponent(iconUsuario);
         pswUsuario.setPrefixComponent(iconPass);
-        //shortcut entrar
+        //Boton entrar
         btnEntrar.addClickShortcut(Key.ENTER);
+        btnEntrar.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         //agregar elementos
         add(
                 headerMenu,
@@ -96,10 +100,16 @@ ComboBox<DayOfWeek> comboDia = new ComboBox<>("Dia");
     public void menuBotonoes(){
         //Creacion de layout para los botones practicas y apartado
         HorizontalLayout layoutBotones = new HorizontalLayout(btnPracticas,btnApartado);
+        //Botones
+        btnPracticas.addThemeVariants(ButtonVariant.LUMO_PRIMARY,ButtonVariant.LUMO_LARGE);
+        btnApartado.addThemeVariants(ButtonVariant.LUMO_PRIMARY,ButtonVariant.LUMO_LARGE);
+        btnPracticas.setIcon(iconPracticas);
+        btnApartado.setIcon(iconApartado);
         //agregar componentes
         add(layoutBotones);
-        //Orden de botones de Practicas y Apartado
+        //Orden del contenido
         setJustifyContentMode(JustifyContentMode.START);
+        setDefaultHorizontalComponentAlignment(Alignment.START);
         setMargin(true);
 
     }
