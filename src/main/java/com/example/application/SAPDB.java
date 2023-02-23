@@ -26,6 +26,7 @@ public class SAPDB {
         try{
             Statement consulta = con.createStatement();
             ResultSet registro = consulta.executeQuery("SELECT * FROM USUARIOS WHERE USUARIO ='"+usuario+"' AND CONTRASEÑA ='"+pass+"'");
+
             if(registro.next()){
                 banderLogin = true;
             }
