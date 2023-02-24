@@ -166,9 +166,9 @@ Icon iconSalidaPracticas = new Icon("vaadin","sign-out");
         //Permisis de escritura
         txtfHR_Entrada.isReadOnly();
         //estilo botones
-        btnRegistrarEntrada.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
+        btnRegistrarEntrada.addThemeVariants(ButtonVariant.LUMO_SUCCESS,ButtonVariant.LUMO_PRIMARY);
         btnRegistrarEntrada.setIcon(iconoEntradaPracticasc);
-        btnSalidaPracticas.addThemeVariants(ButtonVariant.LUMO_ERROR);
+        btnSalidaPracticas.addThemeVariants(ButtonVariant.LUMO_ERROR,ButtonVariant.LUMO_PRIMARY);
         btnSalidaPracticas.setIcon(iconSalidaPracticas);
         //Aliniar componentes
         layout2.setDefaultVerticalComponentAlignment(Alignment.BASELINE);
