@@ -16,6 +16,7 @@ import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.Scroller;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
@@ -44,12 +45,11 @@ Button btnAgregarUsuario  = new Button("Usuarios");
 Icon iconAgregarUsuario = new Icon("vaadin","user");
 Icon iconPracticas = new Icon("vaadin","specialist");
 Icon iconPrestamos = new Icon("vaadin","calendar-user");
-H2 headerPraticasEntradas = new H2("ENTRADAS");
-H2 headerPraticasSalidas = new H2("SALIDAS");
 ComboBox<String> comboDia = new ComboBox<>("Día:");
 ComboBox<String> comboHorario = new ComboBox<>("Horario:");
 Button btnBuscarGridPracticas = new Button("Buscar");
 Icon iconBuscar = new Icon("lumo","reload");
+Icon iconBuscarSalida = new Icon("lumo","reload");
 TextField txtfProfesor = new TextField("Profesor:");
 ComboBox<String> comboSalon = new ComboBox<>("Salon");
 TextField txtfPractica = new TextField("Practica:");
@@ -57,6 +57,8 @@ TextField txtfHR_Entrada = new TextField("Hora entrada:");
 Button btnRegistrarEntrada = new Button("Entrada");
 Icon iconoEntradaPracticasc = new Icon("lumo","checkmark");
 TextField txtfAlumnosPracticas = new TextField("Alumnos:");
+ComboBox<String> comboSalonSalida = new ComboBox<>("Salon:");
+TextField txtfProfesorSalida = new TextField("Profesor");
 TextField txtfHR_Salida = new TextField("Hora salida:");
 Button btnSalidaPracticas = new Button("Salida");
 Icon iconSalidaPracticas = new Icon("vaadin","sign-out");
@@ -76,6 +78,17 @@ Button btnCanelarModificarUsuario = new Button("Cancelar");
 TextField txtEliminarUsuario = new TextField("Usuario:");
 Button btnEliminarUsuario = new Button("Eliminar");
 Grid<Practica> grid = new Grid<>(Practica.class,false);
+Grid<Practica> gridSalida = new Grid<>(Practica.class,false);
+H2 headerEntradas = new H2("Entradas");
+H2 headerSalida = new H2("Salidas");
+//Practicas salidas
+ComboBox<String> comboDiaSalida = new ComboBox<>("Dia:");
+ComboBox<String> comboHorarioSalida = new ComboBox<>("Horario:");
+Button btnSalidaGridBuscar = new Button("Buscar");
+String diaEntrada;
+String horarioEntrada;
+String diaSalida;
+String horarioSalida;
 
 
 
@@ -112,7 +125,11 @@ Grid<Practica> grid = new Grid<>(Practica.class,false);
             LocalDateTime entrada = LocalDateTime.now();
             int hours  = entrada.getHour();
             int minutes = entrada.getMinute();
-            txtfHR_Entrada.setValue(String.valueOf(hours)+":"+String.valueOf(minutes));
+            if(minutes < 10){
+                txtfHR_Entrada.setValue(String.valueOf(hours)+":0"+String.valueOf(minutes));
+            }else {
+                txtfHR_Entrada.setValue(String.valueOf(hours) + ":" + String.valueOf(minutes));
+            }
 
         });
 
@@ -120,7 +137,12 @@ Grid<Practica> grid = new Grid<>(Practica.class,false);
             LocalDateTime salida = LocalDateTime.now();
             int hours_s  = salida.getHour();
             int minutes_s = salida.getMinute();
-            txtfHR_Salida.setValue(String.valueOf(hours_s)+":"+String.valueOf(minutes_s));
+            if(minutes_s < 10){
+                txtfHR_Salida.setValue(String.valueOf(hours_s)+":0"+String.valueOf(minutes_s));
+            }else{
+                txtfHR_Salida.setValue(String.valueOf(hours_s)+":"+String.valueOf(minutes_s));
+            }
+
         });
 
         btnAgregarUsuario.addClickListener(Click ->{
@@ -185,9 +207,27 @@ Grid<Practica> grid = new Grid<>(Practica.class,false);
         });
 
         btnBuscarGridPracticas.addClickListener(Click ->{
-            grid.setItems(SAPDB.PracticasGrid(SAPDB.Conexion(),comboDia.getValue(),comboHorario.getValue()));
-            comboSalon.setItems(SAPDB.comboSalon(SAPDB.Conexion(),comboDia.getValue(),comboHorario.getValue()));
-            grid.setHeight("100%");
+            diaEntrada = comboDia.getValue();
+            horarioEntrada = comboHorario.getValue();
+            grid.setItems(SAPDB.PracticasGrid(SAPDB.Conexion(),diaEntrada,horarioEntrada));
+            comboSalon.setItems(SAPDB.comboSalon(SAPDB.Conexion(),diaEntrada,horarioEntrada));
+            grid.setHeight("270px");
+            comboSalon.focus();
+        });
+
+        btnSalidaGridBuscar.addClickListener(Click ->{
+            diaSalida=comboDiaSalida.getValue();
+            horarioSalida=comboHorarioSalida.getValue();
+            gridSalida.setItems(SAPDB.PracticasGrid(SAPDB.Conexion(),diaSalida,horarioSalida));
+            comboSalonSalida.setItems(SAPDB.comboSalon(SAPDB.Conexion(),diaSalida,horarioSalida));
+            gridSalida.setHeight("270px");
+            comboSalonSalida.focus();
+        });
+
+        comboSalonSalida.addValueChangeListener(inputEvent -> {
+            txtfProfesorSalida.clear();
+            txtfHR_Salida.clear();
+            txtfProfesorSalida.setValue(SAPDB.profePractica(SAPDB.Conexion(),comboDiaSalida.getValue(),comboHorarioSalida.getValue(),comboSalonSalida.getValue()));
         });
 
         comboSalon.addValueChangeListener(inputEvent -> {
@@ -197,7 +237,28 @@ Grid<Practica> grid = new Grid<>(Practica.class,false);
            txtfProfesor.setValue(SAPDB.profePractica(SAPDB.Conexion(),comboDia.getValue(),comboHorario.getValue(),comboSalon.getValue()));
         });
 
+        btnRegistrarEntrada.addClickListener(Click ->{
+            SAPDB.insertarPractica(SAPDB.Conexion(),diaEntrada,horarioEntrada,comboSalon.getValue(),txtfPractica.getValue(),txtfHR_Entrada.getValue());
+            grid.setItems(SAPDB.PracticasGrid(SAPDB.Conexion(),comboDia.getValue(),comboHorario.getValue()));
+            txtfPractica.clear();
+            txtfProfesor.clear();
+            comboSalon.clear();
+            txtfHR_Entrada.clear();
+            comboSalon.focus();
 
+        });
+
+        btnSalidaPracticas.addClickListener(Click ->{
+
+            SAPDB.salidaPracticas(SAPDB.Conexion(),diaSalida,horarioSalida,comboSalonSalida.getValue(),Integer.parseInt(txtfAlumnosPracticas.getValue()),txtfHR_Salida.getValue());
+            gridSalida.setItems(SAPDB.PracticasGrid(SAPDB.Conexion(),diaSalida,horarioSalida));
+            txtfAlumnosPracticas.clear();
+            txtfProfesorSalida.clear();
+            txtfHR_Salida.clear();
+            comboSalonSalida.clear();
+            comboSalonSalida.focus();
+
+        });
 
     }
     private void menuLogin(){
@@ -259,11 +320,12 @@ Grid<Practica> grid = new Grid<>(Practica.class,false);
         removeAll();
         menuBotonoes();
         grid.removeAllColumns();
-        grid.removeAllColumns();
+        gridSalida.removeAllColumns();
         //layout vertical para las practicas
         HorizontalLayout layout1 = new HorizontalLayout(comboDia,comboHorario,btnBuscarGridPracticas);
         HorizontalLayout layout2 = new HorizontalLayout(comboSalon,txtfPractica,txtfProfesor,txtfHR_Entrada,btnRegistrarEntrada);
-        HorizontalLayout layout3 = new HorizontalLayout(txtfAlumnosPracticas,txtfHR_Salida,btnSalidaPracticas);
+        HorizontalLayout layout3 = new HorizontalLayout(comboDiaSalida,comboHorarioSalida,btnSalidaGridBuscar);
+        HorizontalLayout layout4 = new HorizontalLayout(comboSalonSalida,txtfAlumnosPracticas,txtfProfesorSalida,txtfHR_Salida,btnSalidaPracticas);
         //Cambiando tamaño de los componentes
         comboDia.setWidth("130px");
         comboHorario.setWidth("150px");
@@ -273,6 +335,10 @@ Grid<Practica> grid = new Grid<>(Practica.class,false);
         txtfHR_Entrada.setWidth("110px");
         txtfHR_Salida.setWidth("100px");
         txtfAlumnosPracticas.setWidth("90px");
+        txtfProfesorSalida.setWidth("350px");
+        comboSalonSalida.setWidth("150px");
+        grid.setHeight("270px");
+        gridSalida.setHeight("270px");
         //Permisis de escritura
         txtfHR_Entrada.isReadOnly();
         //estilo botones
@@ -282,17 +348,28 @@ Grid<Practica> grid = new Grid<>(Practica.class,false);
         btnSalidaPracticas.setIcon(iconSalidaPracticas);
         btnBuscarGridPracticas.addThemeVariants(ButtonVariant.LUMO_PRIMARY,ButtonVariant.LUMO_CONTRAST);
         btnBuscarGridPracticas.setIcon(iconBuscar);
+        btnSalidaGridBuscar.addThemeVariants(ButtonVariant.LUMO_PRIMARY,ButtonVariant.LUMO_CONTRAST);
+        btnSalidaGridBuscar.setIcon(iconBuscarSalida);
         //Aliniar componentes
         layout1.setDefaultVerticalComponentAlignment(Alignment.BASELINE);
         layout2.setDefaultVerticalComponentAlignment(Alignment.BASELINE);
         layout3.setDefaultVerticalComponentAlignment(Alignment.BASELINE);
+        layout4.setDefaultVerticalComponentAlignment(Alignment.BASELINE);
+        layout1.setDefaultVerticalComponentAlignment(Alignment.BASELINE);
         //quitar permiso de escritura
         txtfHR_Entrada.setReadOnly(true);
         txtfHR_Salida.setReadOnly(true);
         txtfProfesor.setReadOnly(true);
+        txtfProfesorSalida.setReadOnly(true);
         //Opciones de combobox
         comboDia.setItems("Lunes","Martes","Miercoles","Jueves","Viernes","Sabado");
+        comboDia.setValue("Lunes");
         comboHorario.setItems("7:00-8:59","9:00-10:59","11:00-12:59","13:00-14:59","16:00-17:59","18:00-19:59","20:00-21:59");
+        comboHorario.setValue("7:00-8:59");
+        comboDiaSalida.setItems("Lunes","Martes","Miercoles","Jueves","Viernes","Sabado");
+        comboDiaSalida.setValue("Lunes");
+        comboHorarioSalida.setItems("7:00-8:59","9:00-10:59","11:00-12:59","13:00-14:59","16:00-17:59","18:00-19:59","20:00-21:59");
+        comboHorarioSalida.setValue("7:00-8:59");
         //grid
         grid.addColumn(Practica::getHorario).setHeader("Horario").setAutoWidth(true);
         grid.addColumn(Practica::getProfesor).setHeader("Profesor").setAutoWidth(true);
@@ -303,14 +380,24 @@ Grid<Practica> grid = new Grid<>(Practica.class,false);
         grid.addColumn(Practica::getHrEntrada).setHeader("Entrada").setAutoWidth(true);
         grid.addColumn(Practica::getAsistencia).setHeader("Asistencia").setAutoWidth(true);
         grid.addColumn(Practica::getHrSalida).setHeader("Salida").setAutoWidth(true);
-        grid.setHeight("100%");
+        gridSalida.addColumn(Practica::getHorario).setHeader("Horario").setAutoWidth(true);
+        gridSalida.addColumn(Practica::getProfesor).setHeader("Profesor").setAutoWidth(true);
+        gridSalida.addColumn(Practica::getMateria).setHeader("Materia").setAutoWidth(true);
+        gridSalida.addColumn(Practica::getSalon).setHeader("Salon").setAutoWidth(true);
+        gridSalida.addColumn(Practica::getPractica).setHeader("Practica").setAutoWidth(true);
+        gridSalida.addColumn(Practica::getAlumnosInscritos).setHeader("Inscritos").setAutoWidth(true);
+        gridSalida.addColumn(Practica::getHrEntrada).setHeader("Entrada").setAutoWidth(true);
+        gridSalida.addColumn(Practica::getAsistencia).setHeader("Asistencia").setAutoWidth(true);
+        gridSalida.addColumn(Practica::getHrSalida).setHeader("Salida").setAutoWidth(true);
+        //Scroll
+        Div divPracticas = new Div(headerEntradas,layout1,layout2,grid,headerSalida,layout3,layout4,gridSalida);
+        divPracticas.setSizeFull();
+        Scroller scroll = new Scroller(divPracticas);
+        scroll.setScrollDirection(Scroller.ScrollDirection.VERTICAL);
+        scroll.setSizeFull();
         add(
-                layout1,
-                layout2,
-                layout3,
-                grid
+                scroll
         );
-
     }
 
     private void menuUsuarios(){

@@ -206,8 +206,50 @@ public class SAPDB {
             Notification notiNoActualizado = Notification.show("Usuario no actualizado");
             notiNoActualizado.addThemeVariants(NotificationVariant.LUMO_ERROR);
         }
+    }
 
+    public static void insertarPractica(Connection con,String dia,String horario,String salon,String practica,String hrentrada){
+        try{
+            PreparedStatement ps;
+            ps = con.prepareStatement("UPDATE practica SET practica ='"+practica+"',HrEntrada='"+hrentrada+"' WHERE idMateria = "+
+                    "(SELECT P.idMateria\n" +
+                    "FROM horario as H \n" +
+                    "INNER JOIN practica as P ON H.idHorario=P."+dia+"\n" +
+                    "INNER JOIN materia as M ON M.idMateria=P.idMateria\n" +
+                    "INNER JOIN profesor as prof ON prof.idProfesor = M.idProfesor\n" +
+                    "INNER JOIN  salon as S on S.idSalon = M.idSalon\n" +
+                    "WHERE NOT P."+dia+" = 8 AND H.horario ='"+horario+"' AND S.Salon = '"+salon+"')");
+            ps.executeUpdate();
+            Notification notiEntrada = Notification.show("Entrada registrada");
+            notiEntrada.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+            con.close();
+        }catch(SQLException e){
+            Notification notiNoEntrada = Notification.show("Error entrada");
+            notiNoEntrada.addThemeVariants(NotificationVariant.LUMO_ERROR);
+            System.out.println(e);
+        }
+    }
 
+    public static void salidaPracticas(Connection con,String dia,String horario,String salon,int asistencia,String hrsalida){
+        try{
+            PreparedStatement ps;
+            ps = con.prepareStatement("UPDATE practica SET Asistencia ="+asistencia+",HrSalida='"+hrsalida+"' WHERE idMateria = "+
+                    "(SELECT P.idMateria\n" +
+                    "FROM horario as H \n" +
+                    "INNER JOIN practica as P ON H.idHorario=P."+dia+"\n" +
+                    "INNER JOIN materia as M ON M.idMateria=P.idMateria\n" +
+                    "INNER JOIN profesor as prof ON prof.idProfesor = M.idProfesor\n" +
+                    "INNER JOIN  salon as S on S.idSalon = M.idSalon\n" +
+                    "WHERE NOT P."+dia+" = 8 AND H.horario ='"+horario+"' AND S.Salon = '"+salon+"')");
+            ps.executeUpdate();
+            Notification notiSalida = Notification.show("Salida registrada");
+            notiSalida.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+            con.close();
+        }catch(SQLException e){
+            Notification notiNoSalida = Notification.show("Error");
+            notiNoSalida.addThemeVariants(NotificationVariant.LUMO_ERROR);
+            System.out.println(e);
+        }
     }
 
 }
