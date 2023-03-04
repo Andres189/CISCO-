@@ -42,6 +42,24 @@ public class SAPDB {
         }
         return banderLogin;
     }
+    public static Boolean permisos(Connection con,String usuario,String pass) {
+        Boolean permiso = false;
+
+        try {
+            Statement consulta = con.createStatement();
+            ResultSet registro = consulta.executeQuery("SELECT PERMISOS FROM USUARIOS WHERE USUARIO ='" + usuario + "' AND CONTRASEÑA ='" + pass + "'");
+            while (registro.next()) {
+                if (registro.getString(1).equals("ADMIN")) {
+                    permiso = true;
+                }
+            }
+            con.close();
+
+        } catch (SQLException e) {
+            System.out.println("Usuario estandar");
+        }
+        return permiso;
+    }
     public static List Practicas(Connection con){
 
         List<Usuario> listUsuario = new ArrayList<Usuario>();

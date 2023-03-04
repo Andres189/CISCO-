@@ -37,6 +37,7 @@ public class ListView extends VerticalLayout {
 Button btnEntrar = new Button("Entrar");
 TextField txtfUsuario = new TextField("Usuario:");
 PasswordField pswUsuario = new PasswordField("Contraseña:");
+Boolean permisos=false;
 Icon iconUsuario = new Icon("vaadin","user");
 Icon iconPass = new Icon("vaadin","lock");
 H2 headerMenu = new H2("Login");
@@ -109,8 +110,10 @@ Icon iconoCerrarSesion = new Icon("vaadin","sign-out");
             if (SAPDB.Login(txtfUsuario.getValue(),pswUsuario.getValue(),SAPDB.Conexion())){
                 Notification dentro = Notification.show("Inicio de sesion exitoso");
                 dentro.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                permisos=SAPDB.permisos(SAPDB.Conexion(),txtfUsuario.getValue(),pswUsuario.getValue());
                 removeAll();
                 menuBotonoes();
+                System.out.println(permisos);
 
             }else{
                 Notification error = Notification.show("Contraseña o usuario incorrectos");
@@ -149,7 +152,12 @@ Icon iconoCerrarSesion = new Icon("vaadin","sign-out");
         });
 
         btnAgregarUsuario.addClickListener(Click ->{
-            menuUsuarios();
+            if(permisos) {
+                menuUsuarios();
+            }else{
+                Notification notiNoPermiso = Notification.show("Permisos insuficientes");
+                notiNoPermiso.addThemeVariants(NotificationVariant.LUMO_ERROR);
+            }
         });
 
         btnRegistrarUsuario.addClickListener(Click ->{
