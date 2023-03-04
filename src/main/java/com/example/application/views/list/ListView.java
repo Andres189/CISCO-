@@ -23,6 +23,7 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.VaadinSession;
 import com.vaadin.flow.theme.lumo.LumoUtility.Margin;
 import org.aspectj.weaver.ast.Not;
 
@@ -89,7 +90,9 @@ String diaEntrada;
 String horarioEntrada;
 String diaSalida;
 String horarioSalida;
-
+//Boton de cerrar sesion
+Button btnCerrarSesion = new Button("Salir");
+Icon iconoCerrarSesion = new Icon("vaadin","sign-out");
 
 
 
@@ -260,6 +263,17 @@ String horarioSalida;
 
         });
 
+        btnCerrarSesion.addClickListener(Click ->{
+
+            VaadinSession.getCurrent().close();
+
+        });
+
+        btnApartado.addClickListener(Click ->{
+
+            menuApartados();
+        });
+
     }
     private void menuLogin(){
         //Imagen login
@@ -293,16 +307,18 @@ String horarioSalida;
         Image img = new Image("images/logo_unitec.png", "logoUnitec");
         img.setWidth("200px");
         //Creacion de layout para los botones practicas y apartado
-        HorizontalLayout layoutBotones = new HorizontalLayout(btnPracticas,btnApartado,btnAgregarUsuario);
+        HorizontalLayout layoutBotones = new HorizontalLayout(btnPracticas,btnApartado,btnAgregarUsuario,btnCerrarSesion);
         //
         setSpacing(true);
         //Botones estilo
         btnAgregarUsuario.setIcon(iconAgregarUsuario);
         btnApartado.setIcon(iconPrestamos);
         btnPracticas.setIcon(iconPracticas);
+        btnCerrarSesion.setIcon(iconoCerrarSesion);
         btnAgregarUsuario.addThemeVariants(ButtonVariant.LUMO_LARGE,ButtonVariant.LUMO_PRIMARY);
         btnApartado.addThemeVariants(ButtonVariant.LUMO_LARGE,ButtonVariant.LUMO_PRIMARY);
         btnPracticas.addThemeVariants(ButtonVariant.LUMO_LARGE,ButtonVariant.LUMO_PRIMARY);
+        btnCerrarSesion.addThemeVariants(ButtonVariant.LUMO_LARGE,ButtonVariant.LUMO_PRIMARY,ButtonVariant.LUMO_ERROR);
         //agregar componentes
         add(
                 img,
@@ -431,5 +447,12 @@ String horarioSalida;
                 layoutModificar,
                 layoutEliminar
         );
+    }
+
+    private void menuApartados(){
+
+        removeAll();
+        menuBotonoes();
+
     }
 }
