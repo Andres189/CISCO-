@@ -108,14 +108,15 @@ Icon iconoCerrarSesion = new Icon("vaadin","sign-out");
         btnEntrar.addClickListener(Click ->{
 
             if (SAPDB.Login(txtfUsuario.getValue(),pswUsuario.getValue(),SAPDB.Conexion())){
+
                 Notification dentro = Notification.show("Inicio de sesion exitoso");
                 dentro.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 permisos=SAPDB.permisos(SAPDB.Conexion(),txtfUsuario.getValue(),pswUsuario.getValue());
                 removeAll();
                 menuBotonoes();
-                System.out.println(permisos);
 
             }else{
+
                 Notification error = Notification.show("Contraseña o usuario incorrectos");
                 error.addThemeVariants(NotificationVariant.LUMO_ERROR);
                 pswUsuario.clear();
@@ -220,8 +221,13 @@ Icon iconoCerrarSesion = new Icon("vaadin","sign-out");
         btnBuscarGridPracticas.addClickListener(Click ->{
             diaEntrada = comboDia.getValue();
             horarioEntrada = comboHorario.getValue();
-            grid.setItems(SAPDB.PracticasGrid(SAPDB.Conexion(),diaEntrada,horarioEntrada));
-            comboSalon.setItems(SAPDB.comboSalon(SAPDB.Conexion(),diaEntrada,horarioEntrada));
+            if(diaEntrada.equals("Lunes")||diaEntrada.equals("Martes")||diaEntrada.equals("Miercoles")){
+                grid.setItems(SAPDB.PracticasGrid(SAPDB.Conexion(),diaEntrada,horarioEntrada));
+                comboSalon.setItems(SAPDB.comboSalon(SAPDB.Conexion(),diaEntrada,horarioEntrada));
+            }else{
+                grid.setItems(SAPDB.PracticasGridDos(SAPDB.Conexion(),diaEntrada,horarioEntrada));
+                comboSalon.setItems(SAPDB.comboSalonDos(SAPDB.Conexion(),diaEntrada,horarioEntrada));
+            }
             grid.setHeight("270px");
             comboSalon.focus();
         });
@@ -229,8 +235,13 @@ Icon iconoCerrarSesion = new Icon("vaadin","sign-out");
         btnSalidaGridBuscar.addClickListener(Click ->{
             diaSalida=comboDiaSalida.getValue();
             horarioSalida=comboHorarioSalida.getValue();
-            gridSalida.setItems(SAPDB.PracticasGrid(SAPDB.Conexion(),diaSalida,horarioSalida));
-            comboSalonSalida.setItems(SAPDB.comboSalon(SAPDB.Conexion(),diaSalida,horarioSalida));
+            if(diaSalida.equals("Lunes")||diaSalida.equals("Martes")||diaSalida.equals("Miercoles")){
+                gridSalida.setItems(SAPDB.PracticasGrid(SAPDB.Conexion(),diaSalida,horarioSalida));
+                comboSalonSalida.setItems(SAPDB.comboSalon(SAPDB.Conexion(),diaSalida,horarioSalida));
+            }else{
+                gridSalida.setItems(SAPDB.PracticasGridDos(SAPDB.Conexion(),diaSalida,horarioSalida));
+                comboSalonSalida.setItems(SAPDB.comboSalonDos(SAPDB.Conexion(),diaSalida,horarioSalida));
+            }
             gridSalida.setHeight("270px");
             comboSalonSalida.focus();
         });
@@ -238,19 +249,36 @@ Icon iconoCerrarSesion = new Icon("vaadin","sign-out");
         comboSalonSalida.addValueChangeListener(inputEvent -> {
             txtfProfesorSalida.clear();
             txtfHR_Salida.clear();
-            txtfProfesorSalida.setValue(SAPDB.profePractica(SAPDB.Conexion(),comboDiaSalida.getValue(),comboHorarioSalida.getValue(),comboSalonSalida.getValue()));
+            if(diaSalida.equals("Lunes")||diaSalida.equals("Martes")||diaSalida.equals("Miercoles")){
+                txtfProfesorSalida.setValue(SAPDB.profePractica(SAPDB.Conexion(),comboDiaSalida.getValue(),comboHorarioSalida.getValue(),comboSalonSalida.getValue()));
+            }else{
+                txtfProfesorSalida.setValue(SAPDB.profePracticaDos(SAPDB.Conexion(),comboDiaSalida.getValue(),comboHorarioSalida.getValue(),comboSalonSalida.getValue()));
+            }
+
         });
 
         comboSalon.addValueChangeListener(inputEvent -> {
            txtfProfesor.clear();
            txtfPractica.clear();
            txtfHR_Entrada.clear();
-           txtfProfesor.setValue(SAPDB.profePractica(SAPDB.Conexion(),comboDia.getValue(),comboHorario.getValue(),comboSalon.getValue()));
+            if(diaEntrada.equals("Lunes")||diaEntrada.equals("Martes")||diaEntrada.equals("Miercoles")){
+                txtfProfesor.setValue(SAPDB.profePractica(SAPDB.Conexion(),comboDia.getValue(),comboHorario.getValue(),comboSalon.getValue()));
+            }else{
+                txtfProfesor.setValue(SAPDB.profePracticaDos(SAPDB.Conexion(),comboDia.getValue(),comboHorario.getValue(),comboSalon.getValue()));
+            }
+
         });
 
         btnRegistrarEntrada.addClickListener(Click ->{
-            SAPDB.insertarPractica(SAPDB.Conexion(),diaEntrada,horarioEntrada,comboSalon.getValue(),txtfPractica.getValue(),txtfHR_Entrada.getValue());
-            grid.setItems(SAPDB.PracticasGrid(SAPDB.Conexion(),comboDia.getValue(),comboHorario.getValue()));
+            if(diaEntrada.equals("Lunes")||diaEntrada.equals("Martes")||diaEntrada.equals("Miercoles")){
+                SAPDB.insertarPractica(SAPDB.Conexion(),diaEntrada,horarioEntrada,comboSalon.getValue(),txtfPractica.getValue(),txtfHR_Entrada.getValue());
+                grid.setItems(SAPDB.PracticasGrid(SAPDB.Conexion(),comboDia.getValue(),comboHorario.getValue()));
+                SAPDB.tablaPractica(SAPDB.Conexion(),diaEntrada,horarioEntrada,comboSalon.getValue());
+            }else{
+                SAPDB.insertarPracticaDos(SAPDB.Conexion(),diaEntrada,horarioEntrada,comboSalon.getValue(),txtfPractica.getValue(),txtfHR_Entrada.getValue());
+                grid.setItems(SAPDB.PracticasGridDos(SAPDB.Conexion(),comboDia.getValue(),comboHorario.getValue()));
+                SAPDB.tablaPracticaDos(SAPDB.Conexion(),diaEntrada,horarioEntrada,comboSalon.getValue());
+            }
             txtfPractica.clear();
             txtfProfesor.clear();
             comboSalon.clear();
@@ -261,8 +289,16 @@ Icon iconoCerrarSesion = new Icon("vaadin","sign-out");
 
         btnSalidaPracticas.addClickListener(Click ->{
 
-            SAPDB.salidaPracticas(SAPDB.Conexion(),diaSalida,horarioSalida,comboSalonSalida.getValue(),Integer.parseInt(txtfAlumnosPracticas.getValue()),txtfHR_Salida.getValue());
-            gridSalida.setItems(SAPDB.PracticasGrid(SAPDB.Conexion(),diaSalida,horarioSalida));
+
+            if(diaSalida.equals("Lunes")||diaSalida.equals("Martes")||diaSalida.equals("Miercoles")){
+                SAPDB.salidaPracticas(SAPDB.Conexion(),diaSalida,horarioSalida,comboSalonSalida.getValue(),Integer.parseInt(txtfAlumnosPracticas.getValue()),txtfHR_Salida.getValue());
+                gridSalida.setItems(SAPDB.PracticasGrid(SAPDB.Conexion(),diaSalida,horarioSalida));
+
+            }else{
+                SAPDB.salidaPracticasDos(SAPDB.Conexion(),diaSalida,horarioSalida,comboSalonSalida.getValue(),Integer.parseInt(txtfAlumnosPracticas.getValue()),txtfHR_Salida.getValue());
+                gridSalida.setItems(SAPDB.PracticasGridDos(SAPDB.Conexion(),diaSalida,horarioSalida));
+            }
+            SAPDB.registroSalidas(SAPDB.Conexion(),diaSalida,horarioSalida,comboSalonSalida.getValue(),Integer.parseInt(txtfAlumnosPracticas.getValue()),txtfHR_Salida.getValue());
             txtfAlumnosPracticas.clear();
             txtfProfesorSalida.clear();
             txtfHR_Salida.clear();
