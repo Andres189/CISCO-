@@ -9,6 +9,7 @@ import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.charts.themes.LumoLightTheme;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.combobox.ComboBoxVariant;
+import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.html.Image;
@@ -94,6 +95,16 @@ String horarioSalida;
 //Boton de cerrar sesion
 Button btnCerrarSesion = new Button("Salir");
 Icon iconoCerrarSesion = new Icon("vaadin","sign-out");
+//Menu Apartado
+DatePicker fechaApartado = new DatePicker("Fecha:");
+ComboBox<String> comboHorarioApartado = new ComboBox<>("Horario:");
+Button btnBuscarApartado = new Button("Buscar");
+Icon iconoBuscarApartado = new Icon("lumo","reload");
+ComboBox<String> comboSalonesApartados = new ComboBox<>("Salones:");
+TextField txtfProfesorApartado = new TextField("Profesor:");
+TextField txtfMateriaApartado = new TextField("Materia:");
+Button btnConfirmarApartado = new Button("Confirmar");
+Button btnCancelarApartado = new Button("Cancelar");
 
 
 
@@ -318,6 +329,22 @@ Icon iconoCerrarSesion = new Icon("vaadin","sign-out");
             menuApartados();
         });
 
+
+        btnConfirmarApartado.addClickListener(Click ->{
+
+            comboSalonesApartados.clear();
+            txtfProfesorApartado.clear();
+            txtfMateriaApartado.clear();
+        });
+
+        btnCancelarApartado.addClickListener(Click ->{
+
+            comboSalonesApartados.clear();
+            txtfProfesorApartado.clear();
+            txtfMateriaApartado.clear();
+
+        });
+
     }
     private void menuLogin(){
         //Imagen login
@@ -493,10 +520,32 @@ Icon iconoCerrarSesion = new Icon("vaadin","sign-out");
         );
     }
 
-    private void menuApartados(){
-
+    private void menuApartados() {
         removeAll();
         menuBotonoes();
+        //Layout horizontales del menu Apartado
+        HorizontalLayout layoutApartado1 = new HorizontalLayout(fechaApartado,comboHorarioApartado,btnBuscarApartado);
+        HorizontalLayout layoutApartado2 = new HorizontalLayout(comboSalonesApartados,txtfProfesorApartado,txtfMateriaApartado);
+        HorizontalLayout layoutAparatadoBotones =  new HorizontalLayout(btnConfirmarApartado,btnCancelarApartado);
+        //Alinear layouts
+        layoutApartado1.setDefaultVerticalComponentAlignment(Alignment.BASELINE);
+        layoutApartado2.setDefaultVerticalComponentAlignment(Alignment.BASELINE);
+        layoutAparatadoBotones.setDefaultVerticalComponentAlignment(Alignment.BASELINE);
+        //Estilo de botones
+        btnConfirmarApartado.addThemeVariants(ButtonVariant.LUMO_SUCCESS,ButtonVariant.LUMO_PRIMARY);
+        btnCancelarApartado.addThemeVariants(ButtonVariant.LUMO_PRIMARY,ButtonVariant.LUMO_ERROR);
+        btnBuscarApartado.setIcon(iconoBuscarApartado);
+        btnBuscarApartado.addThemeVariants(ButtonVariant.LUMO_PRIMARY,ButtonVariant.LUMO_CONTRAST);
+        //Opciones de combo
+        comboHorarioApartado.setItems("7:00-8:59","9:00-10:59","11:00-12:59","13:00-14:59","16:00-17:59","18:00-19:59","20:00-21:59");
+        comboHorarioApartado.setValue("7:00-8:59");
+        //Agregar componentes
+        add(
 
+                layoutApartado1,
+                layoutApartado2,
+                layoutAparatadoBotones
+
+        );
     }
 }

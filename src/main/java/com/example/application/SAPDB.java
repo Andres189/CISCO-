@@ -228,7 +228,7 @@ public class SAPDB {
 
         try{
             PreparedStatement ps;
-            ps = con.prepareStatement("INSERT INTO USUARIOS(USUARIO,CONTRASEÑA,PERMISOS) VALUES (?,?,?)");
+            ps = con.prepareStatement("INSERT INTO USUARIO(USUARIO,CONTRASEÑA,PERMISOS) VALUES (?,?,?)");
             ps.setString(1,usuario);
             ps.setString(2,pass);
             ps.setString(3,permisos);
@@ -243,7 +243,7 @@ public class SAPDB {
     public static void eliminarUsuario(Connection con,String usuario){
         try{
             PreparedStatement ps;
-            ps = con.prepareStatement("DELETE FROM USUARIOS WHERE USUARIO=?");
+            ps = con.prepareStatement("DELETE FROM USUARIO WHERE USUARIO=?");
             ps.setString(1,usuario);
             ps.executeUpdate();
             Notification notiUsuarioEliminado = Notification.show("Usuario eliminado");
@@ -262,7 +262,7 @@ public class SAPDB {
 
         try{
             Statement consulta = con.createStatement();
-            ResultSet registro = consulta.executeQuery("SELECT USUARIO FROM USUARIOS WHERE USUARIO ='"+usuario+"'");
+            ResultSet registro = consulta.executeQuery("SELECT USUARIO FROM USUARIO WHERE USUARIO ='"+usuario+"'");
             if(registro.next()){
                 banderaExiste = true;
                 Notification notiExiste = Notification.show("Modifica el usuario");
@@ -282,7 +282,7 @@ public class SAPDB {
 
         try{
             PreparedStatement ps;
-            ps = con.prepareStatement("UPDATE USUARIOS SET USUARIO=?,CONTRASEÑA=?,PERMISOS=? WHERE USUARIO=?");
+            ps = con.prepareStatement("UPDATE USUARIO SET USUARIO=?,CONTRASEÑA=?,PERMISOS=? WHERE USUARIO=?");
             ps.setString(1,usuario);
             ps.setString(2,contraseña);
             ps.setString(3,permisos);
