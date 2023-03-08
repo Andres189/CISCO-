@@ -296,6 +296,7 @@ public class SAPDB {
             System.out.println(e);
             Notification notiNoActualizado = Notification.show("Usuario no actualizado");
             notiNoActualizado.addThemeVariants(NotificationVariant.LUMO_ERROR);
+
         }
     }
 
@@ -455,6 +456,175 @@ public class SAPDB {
         }
     }
 
+    public static void descargarLunes(Connection con){
 
+        try{
+            PreparedStatement ps;
+            ps = con.prepareStatement("SELECT * FROM practicalunes into OUTFILE 'C:/Users/ajg_0/OneDrive/Documentos/Practica_Lunes.csv' FIELDS TERMINATED BY ',' ENCLOSED BY '\"' LINES TERMINATED BY '\\n';");
+            ps.execute();
+            con.close();
+        }catch(SQLException e){
+            Notification notiDescargaLunesError = Notification.show("Error en la descarga lunes");
+            notiDescargaLunesError.addThemeVariants(NotificationVariant.LUMO_ERROR);
+            System.out.println(e);
+        }
+
+    }
+    public static void descargarMartes(Connection con){
+
+        try{
+            PreparedStatement ps;
+            ps = con.prepareStatement("SELECT * FROM practicamartes into OUTFILE 'C:/Users/ajg_0/OneDrive/Documentos/Practica_Martes.csv' FIELDS TERMINATED BY ',' ENCLOSED BY '\"' LINES TERMINATED BY '\\n';");
+            ps.execute();
+            con.close();
+        }catch(SQLException e){
+            Notification notiDescargaLunesError = Notification.show("Error en la descarga martes");
+            notiDescargaLunesError.addThemeVariants(NotificationVariant.LUMO_ERROR);
+            System.out.println(e);
+        }
+
+    }
+
+    public static void descargarMiercoles(Connection con){
+
+        try{
+            PreparedStatement ps;
+            ps = con.prepareStatement("SELECT * FROM practicamiercoles into OUTFILE 'C:/Users/ajg_0/OneDrive/Documentos/Practica_Miercoles.csv' FIELDS TERMINATED BY ',' ENCLOSED BY '\"' LINES TERMINATED BY '\\n';");
+            ps.execute();
+            con.close();
+        }catch(SQLException e){
+            Notification notiDescargaLunesError = Notification.show("Error en la descarga miercoles");
+            notiDescargaLunesError.addThemeVariants(NotificationVariant.LUMO_ERROR);
+            System.out.println(e);
+        }
+
+    }
+
+    public static void descargarJueves(Connection con){
+
+        try{
+            PreparedStatement ps;
+            ps = con.prepareStatement("SELECT * FROM practicajueves into OUTFILE 'C:/Users/ajg_0/OneDrive/Documentos/Practica_Jueves.csv' FIELDS TERMINATED BY ',' ENCLOSED BY '\"' LINES TERMINATED BY '\\n';");
+            ps.execute();
+            con.close();
+        }catch(SQLException e){
+            Notification notiDescargaLunesError = Notification.show("Error en la descarga jueves");
+            notiDescargaLunesError.addThemeVariants(NotificationVariant.LUMO_ERROR);
+            System.out.println(e);
+        }
+
+    }
+    public static void descargarViernes(Connection con){
+
+        try{
+            PreparedStatement ps;
+            ps = con.prepareStatement("SELECT * FROM practicaviernes into OUTFILE 'C:/Users/ajg_0/OneDrive/Documentos/Practica_Viernes.csv' FIELDS TERMINATED BY ',' ENCLOSED BY '\"' LINES TERMINATED BY '\\n';");
+            ps.execute();
+            con.close();
+        }catch(SQLException e){
+            Notification notiDescargaLunesError = Notification.show("Error en la descarga viernes");
+            notiDescargaLunesError.addThemeVariants(NotificationVariant.LUMO_ERROR);
+            System.out.println(e);
+        }
+
+    }
+
+    public static void descargarSabado(Connection con){
+
+        try{
+            PreparedStatement ps;
+            ps = con.prepareStatement("SELECT * FROM practicasabado into OUTFILE 'C:/Users/ajg_0/OneDrive/Documentos/Practica_Sabado.csv' FIELDS TERMINATED BY ',' ENCLOSED BY '\"' LINES TERMINATED BY '\\n';");
+            ps.execute();
+            con.close();
+        }catch(SQLException e){
+            Notification notiDescargaLunesError = Notification.show("Error en la descarga sabado");
+            notiDescargaLunesError.addThemeVariants(NotificationVariant.LUMO_ERROR);
+            System.out.println(e);
+        }
+
+    }
+
+    public static void limpiarTablas(Connection con){
+
+        try{
+            PreparedStatement ps;
+            ps = con.prepareStatement("UPDATE practicauno SET practica = NULL, HrEntrada = NULL, HrSalida = NULL, Asistencia = NULL");
+            ps.execute();
+            ps = con.prepareStatement("UPDATE practicados SET practica = NULL, HrEntrada = NULL, HrSalida = NULL, Asistencia = NULL");
+            ps.execute();
+            ps = con.prepareStatement("DELETE FROM practicalunes");
+            ps.execute();
+            ps = con.prepareStatement("DELETE FROM practicamartes");
+            ps.execute();
+            ps = con.prepareStatement("DELETE FROM practicamiercoles");
+            ps.execute();
+            ps = con.prepareStatement("DELETE FROM practicajueves");
+            ps.execute();
+            ps = con.prepareStatement("DELETE FROM practicaviernes");
+            ps.execute();
+            ps = con.prepareStatement("DELETE FROM practicasabado");
+            ps.execute();
+            con.close();
+            Notification notiLimpiar = Notification.show("Tablas limpias");
+            notiLimpiar.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+        }catch(SQLException ex){
+
+            System.out.println(ex);
+            Notification notiNoLimpias = Notification.show("Error al limpiar tablas");
+            notiNoLimpias.addThemeVariants(NotificationVariant.LUMO_ERROR);
+
+        }
+
+    }
+
+    public static List horarioUno(Connection con,String dia){
+
+        List<String> listaHorario = new ArrayList<>();
+
+        try{
+
+            Statement consulta = con.createStatement();
+            ResultSet registro = consulta.executeQuery("SELECT DISTINCT H.horario \n" +
+                    "FROM practicauno AS P\n" +
+                    "INNER JOIN Horario AS H ON H.idHorario = P."+dia+"\n"+
+                    "WHERE NOT "+dia+"= 8\n" +
+                    "ORDER BY H.idHorario ASC");
+
+            while(registro.next()){
+                listaHorario.add(registro.getString(1));
+            }
+
+        }catch(SQLException ex){
+            System.out.println(ex);
+        }
+
+        return listaHorario;
+
+    }
+
+    public static List horarioDos(Connection con,String dia){
+
+        List<String> listaHorario = new ArrayList<>();
+
+        try{
+
+            Statement consulta = con.createStatement();
+            ResultSet registro = consulta.executeQuery("SELECT DISTINCT H.horario \n" +
+                    "FROM practicados AS P\n" +
+                    "INNER JOIN Horario AS H ON H.idHorario = P."+dia+"\n"+
+                    "WHERE NOT "+dia+"= 8\n" +
+                    "ORDER BY H.idHorario ASC");
+
+            while(registro.next()){
+                listaHorario.add(registro.getString(1));
+            }
+
+        }catch(SQLException ex){
+            System.out.println(ex);
+        }
+
+        return listaHorario;
+
+    }
 
 }
