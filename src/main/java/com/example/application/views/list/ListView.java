@@ -1,6 +1,7 @@
 package com.example.application.views.list;
 
 import com.example.application.SAPDB;
+import com.example.application.model.Apartado;
 import com.example.application.model.Practica;
 import com.example.application.model.Usuario;
 import com.vaadin.flow.component.Key;
@@ -105,8 +106,34 @@ TextField txtfProfesorApartado = new TextField("Profesor:");
 TextField txtfMateriaApartado = new TextField("Materia:");
 Button btnConfirmarApartado = new Button("Confirmar");
 Button btnCancelarApartado = new Button("Cancelar");
-
-
+Icon iconoConfirmarApartado = new Icon("vaadin","check");
+Icon iconoCancelarApartado = new Icon("vaadin","close-circle");
+H2 headerSalidaApartado = new H2("Salida");
+H2 headerEntradaApartado = new H2("Entrada");
+DatePicker fechaEntradaApartado = new DatePicker("Fecha:");
+ComboBox<String> comboHorarioEntradaApartado = new ComboBox<>("Horario:");
+DatePicker fechaSalidaApartado = new DatePicker("Fecha:");
+ComboBox<String> comboHorarioSalidaApartado = new ComboBox<>("Horario:");
+Button btnBuscarEntradaApartado = new Button("Buscar");
+Button btnBuscarSalidaApartado = new Button("Buscar");
+ComboBox<String> comboSalonesEntradaApartado = new ComboBox<>("Salon:");
+TextField txtfPracticaEntradaApartado = new TextField("Pactica:");
+TextField txtfProfesorEntradaApartado = new TextField("Profesor:");
+TextField txtfHoraEntradaApartado = new TextField("Hora entrada:");
+Button btnEntradaApartado = new Button("Entrada");
+ComboBox<String> comboSalonesSalidaApartado = new ComboBox<>("Salon:");
+TextField txtfAlumnosSalidaApartado = new TextField("Alumnos:");
+TextField txtfProfesorSalidaApartado = new TextField("Profesor:");
+TextField txtfHoraSalidaApartado = new TextField("Hora salida:");
+Button btnSalidaApartado = new Button("Salida");
+Button btnRegistrarApartado = new Button("Registrar Apartado");
+Button btnEntradasySalidasApartado = new Button("Entradas y Salidas");
+Icon iconoBuscarEntradaApartado = new Icon("lumo","reload");
+Icon iconoBuscarSalidaApartado = new Icon("lumo","reload");
+Icon iconoSalidaApartado = new Icon("vaadin","sign-out");
+Icon iconoEntradaApartado = new Icon("lumo","checkmark");
+Grid<Apartado>gridEntradaApartado = new Grid<>(Apartado.class,false);
+Grid<Apartado>gridSalidaApartado = new Grid<>(Apartado.class,false);
 
     public ListView() {
         addClassNames("Login");
@@ -327,6 +354,7 @@ Button btnCancelarApartado = new Button("Cancelar");
         btnApartado.addClickListener(Click ->{
 
             menuApartados();
+            menuEntradasySalidasApartado();
         });
 
 
@@ -345,6 +373,15 @@ Button btnCancelarApartado = new Button("Cancelar");
 
         });
 
+        btnRegistrarApartado.addClickListener(Click ->{
+
+            menuRegistrarApartado();
+        });
+
+        btnEntradasySalidasApartado.addClickListener(Click->{
+
+            menuEntradasySalidasApartado();
+        });
     }
     private void menuLogin(){
         //Imagen login
@@ -523,29 +560,125 @@ Button btnCancelarApartado = new Button("Cancelar");
     private void menuApartados() {
         removeAll();
         menuBotonoes();
-        //Layout horizontales del menu Apartado
-        HorizontalLayout layoutApartado1 = new HorizontalLayout(fechaApartado,comboHorarioApartado,btnBuscarApartado);
-        HorizontalLayout layoutApartado2 = new HorizontalLayout(comboSalonesApartados,txtfProfesorApartado,txtfMateriaApartado);
-        HorizontalLayout layoutAparatadoBotones =  new HorizontalLayout(btnConfirmarApartado,btnCancelarApartado);
+        //Layouts horizontales en menu Apartados
+        HorizontalLayout layoutBotonesApartado = new HorizontalLayout(btnEntradasySalidasApartado,btnRegistrarApartado);
+        //Estilo de botones
+        btnRegistrarApartado.addThemeVariants(ButtonVariant.LUMO_PRIMARY,ButtonVariant.LUMO_LARGE);
+        btnEntradasySalidasApartado.addThemeVariants(ButtonVariant.LUMO_PRIMARY,ButtonVariant.LUMO_LARGE);
+        //Alinear layout
+        layoutBotonesApartado.setDefaultVerticalComponentAlignment(Alignment.BASELINE);
+        //Agregar componentes
+        add(
+          layoutBotonesApartado
+        );
+    }
+
+    private void menuRegistrarApartado(){
+        removeAll();
+        menuBotonoes();
+        menuApartados();
+        //Layouts horizontales de menu registrar apartado
+        HorizontalLayout layoutRegistrarApartado1 = new HorizontalLayout(fechaApartado,comboHorarioApartado,btnBuscarApartado);
+        HorizontalLayout layoutRegistrarApartado2 = new HorizontalLayout(comboSalonesApartados,txtfProfesorApartado,txtfMateriaApartado);
+        HorizontalLayout layoutRegistrarApartado3 = new HorizontalLayout(btnConfirmarApartado,btnCancelarApartado);
         //Alinear layouts
-        layoutApartado1.setDefaultVerticalComponentAlignment(Alignment.BASELINE);
-        layoutApartado2.setDefaultVerticalComponentAlignment(Alignment.BASELINE);
-        layoutAparatadoBotones.setDefaultVerticalComponentAlignment(Alignment.BASELINE);
+        layoutRegistrarApartado1.setDefaultVerticalComponentAlignment(Alignment.BASELINE);
+        layoutRegistrarApartado2.setDefaultVerticalComponentAlignment(Alignment.BASELINE);
+        layoutRegistrarApartado3.setDefaultVerticalComponentAlignment(Alignment.BASELINE);
         //Estilo de botones
         btnConfirmarApartado.addThemeVariants(ButtonVariant.LUMO_SUCCESS,ButtonVariant.LUMO_PRIMARY);
+        btnConfirmarApartado.setIcon(iconoConfirmarApartado);
         btnCancelarApartado.addThemeVariants(ButtonVariant.LUMO_PRIMARY,ButtonVariant.LUMO_ERROR);
+        btnCancelarApartado.setIcon(iconoCancelarApartado);
         btnBuscarApartado.setIcon(iconoBuscarApartado);
         btnBuscarApartado.addThemeVariants(ButtonVariant.LUMO_PRIMARY,ButtonVariant.LUMO_CONTRAST);
+        //Tamañano de los componentes
+        txtfProfesorApartado.setWidth("350px");
         //Opciones de combo
         comboHorarioApartado.setItems("7:00-8:59","9:00-10:59","11:00-12:59","13:00-14:59","16:00-17:59","18:00-19:59","20:00-21:59");
         comboHorarioApartado.setValue("7:00-8:59");
         //Agregar componentes
         add(
+                layoutRegistrarApartado1,
+                layoutRegistrarApartado2,
+                layoutRegistrarApartado3
+        );
+    }
 
-                layoutApartado1,
-                layoutApartado2,
-                layoutAparatadoBotones
+    private void menuEntradasySalidasApartado(){
+        removeAll();
+        menuBotonoes();
+        menuApartados();
+        gridEntradaApartado.removeAllColumns();
+        gridSalidaApartado.removeAllColumns();
+        //Layouts horizontales de menu entradas y salidas de apartado
+        HorizontalLayout layoutEntradaApartado1 = new HorizontalLayout(fechaEntradaApartado,comboHorarioEntradaApartado,btnBuscarEntradaApartado);
+        HorizontalLayout layoutEntradaApartado2 = new HorizontalLayout(comboSalonesEntradaApartado,txtfPracticaEntradaApartado,txtfProfesorEntradaApartado,txtfHoraEntradaApartado,btnEntradaApartado);
+        HorizontalLayout layoutSalidaApartado1 = new HorizontalLayout(fechaSalidaApartado,comboHorarioSalidaApartado,btnBuscarSalidaApartado);
+        HorizontalLayout layoutSalidaApartado2 = new HorizontalLayout(comboSalonesSalidaApartado,txtfAlumnosSalidaApartado,txtfProfesorSalidaApartado,txtfHoraSalidaApartado,btnSalidaApartado);
+        //Alinear layouts
+        layoutEntradaApartado1.setDefaultVerticalComponentAlignment(Alignment.BASELINE);
+        layoutEntradaApartado2.setDefaultVerticalComponentAlignment(Alignment.BASELINE);
+        layoutSalidaApartado1.setDefaultVerticalComponentAlignment(Alignment.BASELINE);
+        layoutSalidaApartado2.setDefaultVerticalComponentAlignment(Alignment.BASELINE);
+        //Permisos de escritura
+        txtfProfesorEntradaApartado.setReadOnly(true);
+        txtfHoraEntradaApartado.setReadOnly(true);
+        txtfProfesorSalidaApartado.setReadOnly(true);
+        txtfHoraSalidaApartado.setReadOnly(true);
+        //Opciones combo
+        comboHorarioEntradaApartado.setItems("7:00-8:59","9:00-10:59","11:00-12:59","13:00-14:59","16:00-17:59","18:00-19:59","20:00-21:59");
+        comboHorarioEntradaApartado.setValue("7:00-8:59");
+        comboHorarioSalidaApartado.setItems("7:00-8:59","9:00-10:59","11:00-12:59","13:00-14:59","16:00-17:59","18:00-19:59","20:00-21:59");
+        comboHorarioSalidaApartado.setValue("7:00-8:59");
+        //Tamaño de los componentes
+        gridEntradaApartado.setHeight("270px");
+        gridSalidaApartado.setHeight("270px");
+        txtfHoraEntradaApartado.setWidth("110px");
+        txtfHoraSalidaApartado.setWidth("110px");
+        txtfProfesorEntradaApartado.setWidth("350px");
+        txtfProfesorSalidaApartado.setWidth("350px");
+        comboSalonesEntradaApartado.setWidth("150px");
+        comboSalonesSalidaApartado.setWidth("150px");
+        //Estilo
+        btnBuscarEntradaApartado.addThemeVariants(ButtonVariant.LUMO_PRIMARY,ButtonVariant.LUMO_CONTRAST);
+        btnBuscarEntradaApartado.setIcon(iconoBuscarEntradaApartado);
+        btnBuscarSalidaApartado.addThemeVariants(ButtonVariant.LUMO_PRIMARY,ButtonVariant.LUMO_CONTRAST);
+        btnBuscarSalidaApartado.setIcon(iconoBuscarSalidaApartado);
+        btnEntradaApartado.addThemeVariants(ButtonVariant.LUMO_PRIMARY,ButtonVariant.LUMO_SUCCESS);
+        btnEntradaApartado.setIcon(iconoEntradaApartado);
+        btnSalidaApartado.addThemeVariants(ButtonVariant.LUMO_PRIMARY,ButtonVariant.LUMO_ERROR);
+        btnSalidaApartado.setIcon(iconoSalidaApartado);
+        //Grid
+        gridEntradaApartado.addColumn(Apartado::getFecha).setHeader("Fecha").setAutoWidth(true);
+        gridEntradaApartado.addColumn(Apartado::getHorario).setHeader("Horario").setAutoWidth(true);
+        gridEntradaApartado.addColumn(Apartado::getProfesor).setHeader("Profesor").setAutoWidth(true);
+        gridEntradaApartado.addColumn(Apartado::getMateria).setHeader("Materia").setAutoWidth(true);
+        gridEntradaApartado.addColumn(Apartado::getSalon).setHeader("Salon").setAutoWidth(true);
+        gridEntradaApartado.addColumn(Apartado::getPractica).setHeader("Practica").setAutoWidth(true);
+        gridEntradaApartado.addColumn(Apartado::getHoraEntrada).setHeader("Entrada").setAutoWidth(true);
+        gridEntradaApartado.addColumn(Apartado::getAsistencia).setHeader("Asistencia").setAutoWidth(true);
+        gridEntradaApartado.addColumn(Apartado::getHoraSalida).setHeader("Salida").setAutoWidth(true);
+        gridSalidaApartado.addColumn(Apartado::getFecha).setHeader("Fecha").setAutoWidth(true);
+        gridSalidaApartado.addColumn(Apartado::getHorario).setHeader("Horario").setAutoWidth(true);
+        gridSalidaApartado.addColumn(Apartado::getProfesor).setHeader("Profesor").setAutoWidth(true);
+        gridSalidaApartado.addColumn(Apartado::getMateria).setHeader("Materia").setAutoWidth(true);
+        gridSalidaApartado.addColumn(Apartado::getSalon).setHeader("Salon").setAutoWidth(true);
+        gridSalidaApartado.addColumn(Apartado::getPractica).setHeader("Practica").setAutoWidth(true);
+        gridSalidaApartado.addColumn(Apartado::getHoraEntrada).setHeader("Entrada").setAutoWidth(true);
+        gridSalidaApartado.addColumn(Apartado::getAsistencia).setHeader("Asistencia").setAutoWidth(true);
+        gridSalidaApartado.addColumn(Apartado::getHoraSalida).setHeader("Salida").setAutoWidth(true);
+        //Scroll
+        Div divApartado = new Div(headerEntradaApartado,layoutEntradaApartado1,layoutEntradaApartado2,gridEntradaApartado,headerSalidaApartado,layoutSalidaApartado1,layoutSalidaApartado2,gridSalidaApartado);
+        divApartado.setSizeFull();
+        Scroller scrollApartado = new Scroller(divApartado);
+        scrollApartado.setScrollDirection(Scroller.ScrollDirection.VERTICAL);
+        scrollApartado.setSizeFull();
 
+        //Agregar componentes
+        add(
+
+                scrollApartado
         );
     }
 }
