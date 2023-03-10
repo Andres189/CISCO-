@@ -4,7 +4,7 @@ import java.util.Date;
 
 public class Apartado {
 
-    Date fecha;
+    String fecha;
     String horario;
     String profesor;
     String materia;
@@ -14,7 +14,7 @@ public class Apartado {
     int asistencia;
     String HoraSalida;
 
-    public Apartado(Date fecha,String horario,String profesor,String materia,String salon,String practica,String horaEntrada,int asistencia,String horaSalida){
+    public Apartado(String fecha,String horario,String profesor,String materia,String salon,String practica,String horaEntrada,int asistencia,String horaSalida){
         this.fecha = fecha;
         this.horario = horario;
         this.profesor = profesor;
@@ -26,11 +26,11 @@ public class Apartado {
         HoraSalida = horaSalida;
     }
 
-    public Date getFecha() {
+    public String getFecha() {
         return fecha;
     }
 
-    public void setFecha(Date fecha) {
+    public void setFecha(String fecha) {
         this.fecha = fecha;
     }
 

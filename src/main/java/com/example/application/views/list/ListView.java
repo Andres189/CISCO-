@@ -109,11 +109,11 @@ TextField txtfProfesorApartado = new TextField("Profesor:");
 TextField txtfMateriaApartado = new TextField("Materia:");
 Button btnConfirmarApartado = new Button("Confirmar");
 Button btnCancelarApartado = new Button("Cancelar");
-<<<<<<< HEAD
+
 Icon iconoConfirmarApartado = new Icon("vaadin","check");
 Icon iconoCancelarApartado = new Icon("vaadin","close-circle");
-H2 headerSalidaApartado = new H2("Salida");
-H2 headerEntradaApartado = new H2("Entrada");
+H2 headerSalidaApartado = new H2("Salidas");
+H2 headerEntradaApartado = new H2("Entradas");
 DatePicker fechaEntradaApartado = new DatePicker("Fecha:");
 ComboBox<String> comboHorarioEntradaApartado = new ComboBox<>("Horario:");
 DatePicker fechaSalidaApartado = new DatePicker("Fecha:");
@@ -130,7 +130,7 @@ TextField txtfAlumnosSalidaApartado = new TextField("Alumnos:");
 TextField txtfProfesorSalidaApartado = new TextField("Profesor:");
 TextField txtfHoraSalidaApartado = new TextField("Hora salida:");
 Button btnSalidaApartado = new Button("Salida");
-Button btnRegistrarApartado = new Button("Registrar Apartado");
+
 Button btnEntradasySalidasApartado = new Button("Entradas y Salidas");
 Icon iconoBuscarEntradaApartado = new Icon("lumo","reload");
 Icon iconoBuscarSalidaApartado = new Icon("lumo","reload");
@@ -138,7 +138,8 @@ Icon iconoSalidaApartado = new Icon("vaadin","sign-out");
 Icon iconoEntradaApartado = new Icon("lumo","checkmark");
 Grid<Apartado>gridEntradaApartado = new Grid<>(Apartado.class,false);
 Grid<Apartado>gridSalidaApartado = new Grid<>(Apartado.class,false);
-=======
+Button btnRegistroApartado = new Button("Registro Apartado");
+Icon iconoRegistroApartado = new Icon("vaadin","pencil");
 
 //Menu administracion
 Button btnAdministracion = new Button("Administración");
@@ -157,7 +158,8 @@ Button btnDescargaSabado = new Button("Sabado");
 Button btnLimpiarTablas = new Button("Limpiar tablas");
 Icon iconoLimpiarTablas = new Icon("vaadin","eraser");
 
->>>>>>> 59fb995d317c16a09853f4cc42d4653f7fa7e62a
+
+
 
     public ListView() {
         addClassNames("Login");
@@ -377,7 +379,6 @@ Icon iconoLimpiarTablas = new Icon("vaadin","eraser");
 
         btnApartado.addClickListener(Click ->{
 
-            menuApartados();
             menuEntradasySalidasApartado();
         });
 
@@ -505,14 +506,15 @@ Icon iconoLimpiarTablas = new Icon("vaadin","eraser");
            }
         });
 
-        btnRegistrarApartado.addClickListener(Click ->{
-
-            menuRegistrarApartado();
-        });
 
         btnEntradasySalidasApartado.addClickListener(Click->{
 
             menuEntradasySalidasApartado();
+        });
+
+        btnRegistroApartado.addClickListener(Click ->{
+
+            menuRegistrarApartado();
         });
     }
     private void menuLogin(){
@@ -547,7 +549,7 @@ Icon iconoLimpiarTablas = new Icon("vaadin","eraser");
         Image img = new Image("images/logo_unitec.png", "logoUnitec");
         img.setWidth("200px");
         //Creacion de layout para los botones practicas y apartado
-        HorizontalLayout layoutBotones = new HorizontalLayout(btnPracticas,btnApartado,btnAgregarUsuario,btnAdministracion,btnCerrarSesion);
+        HorizontalLayout layoutBotones = new HorizontalLayout(btnPracticas,btnApartado,btnRegistroApartado,btnAgregarUsuario,btnAdministracion,btnCerrarSesion);
         //
         setSpacing(true);
         //Botones estilo
@@ -556,11 +558,13 @@ Icon iconoLimpiarTablas = new Icon("vaadin","eraser");
         btnPracticas.setIcon(iconPracticas);
         btnCerrarSesion.setIcon(iconoCerrarSesion);
         btnAdministracion.setIcon(iconoMenuAdmin);
+        btnRegistroApartado.setIcon(iconoRegistroApartado);
         btnAgregarUsuario.addThemeVariants(ButtonVariant.LUMO_LARGE,ButtonVariant.LUMO_PRIMARY);
         btnApartado.addThemeVariants(ButtonVariant.LUMO_LARGE,ButtonVariant.LUMO_PRIMARY);
         btnPracticas.addThemeVariants(ButtonVariant.LUMO_LARGE,ButtonVariant.LUMO_PRIMARY);
         btnCerrarSesion.addThemeVariants(ButtonVariant.LUMO_LARGE,ButtonVariant.LUMO_PRIMARY,ButtonVariant.LUMO_ERROR);
         btnAdministracion.addThemeVariants(ButtonVariant.LUMO_LARGE,ButtonVariant.LUMO_PRIMARY);
+        btnRegistroApartado.addThemeVariants(ButtonVariant.LUMO_LARGE,ButtonVariant.LUMO_PRIMARY);
         //agregar componentes
         add(
                 img,
@@ -691,26 +695,10 @@ Icon iconoLimpiarTablas = new Icon("vaadin","eraser");
         );
     }
 
-    private void menuApartados() {
-        removeAll();
-        menuBotonoes();
-        //Layouts horizontales en menu Apartados
-        HorizontalLayout layoutBotonesApartado = new HorizontalLayout(btnEntradasySalidasApartado,btnRegistrarApartado);
-        //Estilo de botones
-        btnRegistrarApartado.addThemeVariants(ButtonVariant.LUMO_PRIMARY,ButtonVariant.LUMO_LARGE);
-        btnEntradasySalidasApartado.addThemeVariants(ButtonVariant.LUMO_PRIMARY,ButtonVariant.LUMO_LARGE);
-        //Alinear layout
-        layoutBotonesApartado.setDefaultVerticalComponentAlignment(Alignment.BASELINE);
-        //Agregar componentes
-        add(
-          layoutBotonesApartado
-        );
-    }
-
     private void menuRegistrarApartado(){
         removeAll();
         menuBotonoes();
-        menuApartados();
+       // menuApartados();
         //Layouts horizontales de menu registrar apartado
         HorizontalLayout layoutRegistrarApartado1 = new HorizontalLayout(fechaApartado,comboHorarioApartado,btnBuscarApartado);
         HorizontalLayout layoutRegistrarApartado2 = new HorizontalLayout(comboSalonesApartados,txtfProfesorApartado,txtfMateriaApartado);
@@ -728,6 +716,9 @@ Icon iconoLimpiarTablas = new Icon("vaadin","eraser");
         btnBuscarApartado.addThemeVariants(ButtonVariant.LUMO_PRIMARY,ButtonVariant.LUMO_CONTRAST);
         //Tamañano de los componentes
         txtfProfesorApartado.setWidth("350px");
+        comboSalonesApartados.setWidth("150px");
+        fechaApartado.setWidth("150px");
+        comboHorarioApartado.setWidth("150px");
         //Opciones de combo
         comboHorarioApartado.setItems("7:00-8:59","9:00-10:59","11:00-12:59","13:00-14:59","16:00-17:59","18:00-19:59","20:00-21:59");
         comboHorarioApartado.setValue("7:00-8:59");
@@ -742,7 +733,7 @@ Icon iconoLimpiarTablas = new Icon("vaadin","eraser");
     private void menuEntradasySalidasApartado(){
         removeAll();
         menuBotonoes();
-        menuApartados();
+        //menuApartados();
         gridEntradaApartado.removeAllColumns();
         gridSalidaApartado.removeAllColumns();
         //Layouts horizontales de menu entradas y salidas de apartado
@@ -766,6 +757,8 @@ Icon iconoLimpiarTablas = new Icon("vaadin","eraser");
         comboHorarioSalidaApartado.setItems("7:00-8:59","9:00-10:59","11:00-12:59","13:00-14:59","16:00-17:59","18:00-19:59","20:00-21:59");
         comboHorarioSalidaApartado.setValue("7:00-8:59");
         //Tamaño de los componentes
+        fechaEntradaApartado.setWidth("130px");
+        fechaSalidaApartado.setWidth("130px");
         gridEntradaApartado.setHeight("270px");
         gridSalidaApartado.setHeight("270px");
         txtfHoraEntradaApartado.setWidth("110px");
@@ -783,7 +776,7 @@ Icon iconoLimpiarTablas = new Icon("vaadin","eraser");
         btnEntradaApartado.setIcon(iconoEntradaApartado);
         btnSalidaApartado.addThemeVariants(ButtonVariant.LUMO_PRIMARY,ButtonVariant.LUMO_ERROR);
         btnSalidaApartado.setIcon(iconoSalidaApartado);
-        //Grid
+        //Grid entrada apartado
         gridEntradaApartado.addColumn(Apartado::getFecha).setHeader("Fecha").setAutoWidth(true);
         gridEntradaApartado.addColumn(Apartado::getHorario).setHeader("Horario").setAutoWidth(true);
         gridEntradaApartado.addColumn(Apartado::getProfesor).setHeader("Profesor").setAutoWidth(true);
@@ -793,6 +786,7 @@ Icon iconoLimpiarTablas = new Icon("vaadin","eraser");
         gridEntradaApartado.addColumn(Apartado::getHoraEntrada).setHeader("Entrada").setAutoWidth(true);
         gridEntradaApartado.addColumn(Apartado::getAsistencia).setHeader("Asistencia").setAutoWidth(true);
         gridEntradaApartado.addColumn(Apartado::getHoraSalida).setHeader("Salida").setAutoWidth(true);
+        //Grid Salida apartado
         gridSalidaApartado.addColumn(Apartado::getFecha).setHeader("Fecha").setAutoWidth(true);
         gridSalidaApartado.addColumn(Apartado::getHorario).setHeader("Horario").setAutoWidth(true);
         gridSalidaApartado.addColumn(Apartado::getProfesor).setHeader("Profesor").setAutoWidth(true);
