@@ -22,7 +22,9 @@ import com.vaadin.flow.component.orderedlayout.Scroller;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.component.timepicker.TimePicker;
 import com.vaadin.flow.data.provider.DataProvider;
+import com.vaadin.flow.router.HighlightAction;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.VaadinSession;
@@ -31,8 +33,11 @@ import org.aspectj.weaver.ast.Not;
 
 import javax.swing.*;
 import java.awt.*;
+import java.sql.Date;
 import java.sql.SQLException;
+import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.List;
 
@@ -100,16 +105,17 @@ String horarioSalida;
 Button btnCerrarSesion = new Button("Salir");
 Icon iconoCerrarSesion = new Icon("vaadin","sign-out");
 //Menu Apartado
+DatePicker.DatePickerI18n fechaFormato = new DatePicker.DatePickerI18n();
 DatePicker fechaApartado = new DatePicker("Fecha:");
+DatePicker fechaApartadoBuscar = new DatePicker("Fecha:");
 ComboBox<String> comboHorarioApartado = new ComboBox<>("Horario:");
 Button btnBuscarApartado = new Button("Buscar");
 Icon iconoBuscarApartado = new Icon("lumo","reload");
-ComboBox<String> comboSalonesApartados = new ComboBox<>("Salones:");
+ComboBox<String> comboSalonesApartados = new ComboBox<>("Salon:");
 TextField txtfProfesorApartado = new TextField("Profesor:");
 TextField txtfMateriaApartado = new TextField("Materia:");
 Button btnConfirmarApartado = new Button("Confirmar");
 Button btnCancelarApartado = new Button("Cancelar");
-
 Icon iconoConfirmarApartado = new Icon("vaadin","check");
 Icon iconoCancelarApartado = new Icon("vaadin","close-circle");
 H2 headerSalidaApartado = new H2("Salidas");
@@ -130,7 +136,6 @@ TextField txtfAlumnosSalidaApartado = new TextField("Alumnos:");
 TextField txtfProfesorSalidaApartado = new TextField("Profesor:");
 TextField txtfHoraSalidaApartado = new TextField("Hora salida:");
 Button btnSalidaApartado = new Button("Salida");
-
 Button btnEntradasySalidasApartado = new Button("Entradas y Salidas");
 Icon iconoBuscarEntradaApartado = new Icon("lumo","reload");
 Icon iconoBuscarSalidaApartado = new Icon("lumo","reload");
@@ -140,10 +145,21 @@ Grid<Apartado>gridEntradaApartado = new Grid<>(Apartado.class,false);
 Grid<Apartado>gridSalidaApartado = new Grid<>(Apartado.class,false);
 Button btnRegistroApartado = new Button("Registro Apartado");
 Icon iconoRegistroApartado = new Icon("vaadin","pencil");
-
+TimePicker timeEntradaPrestamo = new TimePicker();
+TimePicker timeSalidaPrestamo = new TimePicker();
+TimePicker timeEntrada = new TimePicker();
+TimePicker timeSalida = new TimePicker();
+TextField txtfDiaApartado = new TextField("Día:");
+ComboBox<String> comboDiaApartado = new ComboBox<>("Día:");
+H3 headerBusquedaApartado = new H3("Busqueda");
+H3 headerRegistroApartado = new H3("Registro");
+Grid<Apartado> gridPrestamoRegistro = new Grid<>(Apartado.class,false);
+String dateApartado;
+String horarioApartado;
 //Menu administracion
 Button btnAdministracion = new Button("Administración");
 Button btnDescargarPracticas = new Button("Descargar practicas");
+Button btnDescargarApartados = new Button("Descargar apartados");
 Icon iconoDescargarPracticas = new Icon("lumo","arrow-down");
 Icon iconoMenuAdmin = new Icon("vaadin","sliders");
 H3 headerDescargaPracticas = new H3("Descargar todas las tablas");
@@ -157,29 +173,37 @@ Button btnDescargaViernes = new Button("Viernes");
 Button btnDescargaSabado = new Button("Sabado");
 Button btnLimpiarTablas = new Button("Limpiar tablas");
 Icon iconoLimpiarTablas = new Icon("vaadin","eraser");
-
-
+String fechaApartadoEntrada;
+String hrEntradaApartado;
+String fechaApartadoSalida;
+String hrSalidaApartado;
+Button btnLimpiarEntradaPrestamo = new Button("Limpiar");
 
 
     public ListView() {
         addClassNames("Login");
         setSpacing(false);
         setSizeFull();
+        fechaFormato.setDateFormat("dd-MM-yyyy");
+        fechaApartado.setI18n(fechaFormato);
+        fechaEntradaApartado.setI18n(fechaFormato);
+        fechaApartadoBuscar.setI18n(fechaFormato);
+        fechaSalidaApartado.setI18n(fechaFormato);
 
         //mostrar login
         menuLogin();
         //Evento boton ingresar
-        btnEntrar.addClickListener(Click ->{
+        btnEntrar.addClickListener(Click -> {
 
-            if (SAPDB.Login(txtfUsuario.getValue(),pswUsuario.getValue(),SAPDB.Conexion())){
+            if (SAPDB.Login(txtfUsuario.getValue(), pswUsuario.getValue(), SAPDB.Conexion())) {
 
                 Notification dentro = Notification.show("Inicio de sesion exitoso");
                 dentro.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                permisos=SAPDB.permisos(SAPDB.Conexion(),txtfUsuario.getValue(),pswUsuario.getValue());
+                permisos = SAPDB.permisos(SAPDB.Conexion(), txtfUsuario.getValue(), pswUsuario.getValue());
                 removeAll();
                 menuBotonoes();
 
-            }else{
+            } else {
 
                 Notification error = Notification.show("Contraseña o usuario incorrectos");
                 error.addThemeVariants(NotificationVariant.LUMO_ERROR);
@@ -188,17 +212,17 @@ Icon iconoLimpiarTablas = new Icon("vaadin","eraser");
             }
         });
 
-        btnPracticas.addClickListener(Click ->{
+        btnPracticas.addClickListener(Click -> {
             menuPracticas();
         });
 
         txtfPractica.addInputListener(inputEvent -> {
             LocalDateTime entrada = LocalDateTime.now();
-            int hours  = entrada.getHour();
+            int hours = entrada.getHour();
             int minutes = entrada.getMinute();
-            if(minutes < 10){
-                txtfHR_Entrada.setValue(String.valueOf(hours)+":0"+String.valueOf(minutes));
-            }else {
+            if (minutes < 10) {
+                txtfHR_Entrada.setValue(String.valueOf(hours) + ":0" + String.valueOf(minutes));
+            } else {
                 txtfHR_Entrada.setValue(String.valueOf(hours) + ":" + String.valueOf(minutes));
             }
 
@@ -206,61 +230,61 @@ Icon iconoLimpiarTablas = new Icon("vaadin","eraser");
 
         txtfAlumnosPracticas.addInputListener(inputEvent -> {
             LocalDateTime salida = LocalDateTime.now();
-            int hours_s  = salida.getHour();
+            int hours_s = salida.getHour();
             int minutes_s = salida.getMinute();
-            if(minutes_s < 10){
-                txtfHR_Salida.setValue(String.valueOf(hours_s)+":0"+String.valueOf(minutes_s));
-            }else{
-                txtfHR_Salida.setValue(String.valueOf(hours_s)+":"+String.valueOf(minutes_s));
+            if (minutes_s < 10) {
+                txtfHR_Salida.setValue(String.valueOf(hours_s) + ":0" + String.valueOf(minutes_s));
+            } else {
+                txtfHR_Salida.setValue(String.valueOf(hours_s) + ":" + String.valueOf(minutes_s));
             }
 
         });
 
-        btnAgregarUsuario.addClickListener(Click ->{
-            if(permisos) {
+        btnAgregarUsuario.addClickListener(Click -> {
+            if (permisos) {
                 menuUsuarios();
-            }else{
+            } else {
                 Notification notiNoPermiso = Notification.show("Permisos insuficientes");
                 notiNoPermiso.addThemeVariants(NotificationVariant.LUMO_ERROR);
             }
         });
 
-        btnRegistrarUsuario.addClickListener(Click ->{
-           if(txtUsuarioInsertar.isEmpty()||txtContraseñaInsertar.isEmpty()||comboPermisosInsertar.isEmpty()){
-               Notification errorInsertarUsuario = Notification.show("No se permiten campos vacios");
-               errorInsertarUsuario.addThemeVariants(NotificationVariant.LUMO_ERROR);
-           }else{
-               SAPDB.insertarUsuario(SAPDB.Conexion(),txtUsuarioInsertar.getValue(),txtContraseñaInsertar.getValue(),comboPermisosInsertar.getValue());
-               Notification notiUsuarioInsertado = Notification.show("Usuario registrado");
-               txtUsuarioInsertar.clear();
-               txtContraseñaInsertar.clear();
-               comboPermisosInsertar.clear();
-               notiUsuarioInsertado.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-           }
+        btnRegistrarUsuario.addClickListener(Click -> {
+            if (txtUsuarioInsertar.isEmpty() || txtContraseñaInsertar.isEmpty() || comboPermisosInsertar.isEmpty()) {
+                Notification errorInsertarUsuario = Notification.show("No se permiten campos vacios");
+                errorInsertarUsuario.addThemeVariants(NotificationVariant.LUMO_ERROR);
+            } else {
+                SAPDB.insertarUsuario(SAPDB.Conexion(), txtUsuarioInsertar.getValue(), txtContraseñaInsertar.getValue(), comboPermisosInsertar.getValue());
+                Notification notiUsuarioInsertado = Notification.show("Usuario registrado");
+                txtUsuarioInsertar.clear();
+                txtContraseñaInsertar.clear();
+                comboPermisosInsertar.clear();
+                notiUsuarioInsertado.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+            }
         });
 
-        btnEliminarUsuario.addClickListener(Click ->{
-           SAPDB.eliminarUsuario(SAPDB.Conexion(),txtEliminarUsuario.getValue());
-           txtEliminarUsuario.clear();
+        btnEliminarUsuario.addClickListener(Click -> {
+            SAPDB.eliminarUsuario(SAPDB.Conexion(), txtEliminarUsuario.getValue());
+            txtEliminarUsuario.clear();
         });
 
         btnBuscarUsuario.addClickListener(Click -> {
-           if(SAPDB.consultarUsuario(SAPDB.Conexion(),txtUsuarioBuscarModificar.getValue())){
+            if (SAPDB.consultarUsuario(SAPDB.Conexion(), txtUsuarioBuscarModificar.getValue())) {
 
-               txtModificarUsuario.setReadOnly(false);
-               txtContraseñaModificar.setReadOnly(false);
-               comboPermisosModificar.setReadOnly(false);
-               txtUsuarioBuscarModificar.setReadOnly(true);
-               txtModificarUsuario.setValue(txtUsuarioBuscarModificar.getValue());
+                txtModificarUsuario.setReadOnly(false);
+                txtContraseñaModificar.setReadOnly(false);
+                comboPermisosModificar.setReadOnly(false);
+                txtUsuarioBuscarModificar.setReadOnly(true);
+                txtModificarUsuario.setValue(txtUsuarioBuscarModificar.getValue());
 
-           }
+            }
         });
 
-        btnModificarUsuario.addClickListener(Click ->{
-            if(txtContraseñaModificar.isEmpty()||txtModificarUsuario.isEmpty()||comboPermisosModificar.isEmpty()){
+        btnModificarUsuario.addClickListener(Click -> {
+            if (txtContraseñaModificar.isEmpty() || txtModificarUsuario.isEmpty() || comboPermisosModificar.isEmpty()) {
                 Notification notiCamposVaciosModificarUsuario = Notification.show("No puede haber campos vacios");
-            }else{
-                SAPDB.actualizarUsuario(SAPDB.Conexion(),txtModificarUsuario.getValue(),txtContraseñaModificar.getValue(),comboPermisosModificar.getValue(),txtUsuarioBuscarModificar.getValue());
+            } else {
+                SAPDB.actualizarUsuario(SAPDB.Conexion(), txtModificarUsuario.getValue(), txtContraseñaModificar.getValue(), comboPermisosModificar.getValue(), txtUsuarioBuscarModificar.getValue());
                 txtModificarUsuario.setReadOnly(true);
                 txtContraseñaModificar.setReadOnly(true);
                 comboPermisosModificar.setReadOnly(true);
@@ -271,7 +295,7 @@ Icon iconoLimpiarTablas = new Icon("vaadin","eraser");
                 txtUsuarioBuscarModificar.clear();
             }
         });
-        btnCanelarModificarUsuario.addClickListener(Click ->{
+        btnCanelarModificarUsuario.addClickListener(Click -> {
             txtModificarUsuario.setReadOnly(true);
             txtContraseñaModificar.setReadOnly(true);
             comboPermisosModificar.setReadOnly(true);
@@ -282,29 +306,29 @@ Icon iconoLimpiarTablas = new Icon("vaadin","eraser");
             txtUsuarioBuscarModificar.clear();
         });
 
-        btnBuscarGridPracticas.addClickListener(Click ->{
+        btnBuscarGridPracticas.addClickListener(Click -> {
             diaEntrada = comboDia.getValue();
             horarioEntrada = comboHorario.getValue();
-            if(diaEntrada.equals("Lunes")||diaEntrada.equals("Martes")||diaEntrada.equals("Miercoles")){
-                grid.setItems(SAPDB.PracticasGrid(SAPDB.Conexion(),diaEntrada,horarioEntrada));
-                comboSalon.setItems(SAPDB.comboSalon(SAPDB.Conexion(),diaEntrada,horarioEntrada));
-            }else{
-                grid.setItems(SAPDB.PracticasGridDos(SAPDB.Conexion(),diaEntrada,horarioEntrada));
-                comboSalon.setItems(SAPDB.comboSalonDos(SAPDB.Conexion(),diaEntrada,horarioEntrada));
+            if (diaEntrada.equals("Lunes") || diaEntrada.equals("Martes") || diaEntrada.equals("Miercoles")) {
+                grid.setItems(SAPDB.PracticasGrid(SAPDB.Conexion(), diaEntrada, horarioEntrada));
+                comboSalon.setItems(SAPDB.comboSalon(SAPDB.Conexion(), diaEntrada, horarioEntrada));
+            } else {
+                grid.setItems(SAPDB.PracticasGridDos(SAPDB.Conexion(), diaEntrada, horarioEntrada));
+                comboSalon.setItems(SAPDB.comboSalonDos(SAPDB.Conexion(), diaEntrada, horarioEntrada));
             }
             grid.setHeight("270px");
             comboSalon.focus();
         });
 
-        btnSalidaGridBuscar.addClickListener(Click ->{
-            diaSalida=comboDiaSalida.getValue();
-            horarioSalida=comboHorarioSalida.getValue();
-            if(diaSalida.equals("Lunes")||diaSalida.equals("Martes")||diaSalida.equals("Miercoles")){
-                gridSalida.setItems(SAPDB.PracticasGrid(SAPDB.Conexion(),diaSalida,horarioSalida));
-                comboSalonSalida.setItems(SAPDB.comboSalon(SAPDB.Conexion(),diaSalida,horarioSalida));
-            }else{
-                gridSalida.setItems(SAPDB.PracticasGridDos(SAPDB.Conexion(),diaSalida,horarioSalida));
-                comboSalonSalida.setItems(SAPDB.comboSalonDos(SAPDB.Conexion(),diaSalida,horarioSalida));
+        btnSalidaGridBuscar.addClickListener(Click -> {
+            diaSalida = comboDiaSalida.getValue();
+            horarioSalida = comboHorarioSalida.getValue();
+            if (diaSalida.equals("Lunes") || diaSalida.equals("Martes") || diaSalida.equals("Miercoles")) {
+                gridSalida.setItems(SAPDB.PracticasGrid(SAPDB.Conexion(), diaSalida, horarioSalida));
+                comboSalonSalida.setItems(SAPDB.comboSalon(SAPDB.Conexion(), diaSalida, horarioSalida));
+            } else {
+                gridSalida.setItems(SAPDB.PracticasGridDos(SAPDB.Conexion(), diaSalida, horarioSalida));
+                comboSalonSalida.setItems(SAPDB.comboSalonDos(SAPDB.Conexion(), diaSalida, horarioSalida));
             }
             gridSalida.setHeight("270px");
             comboSalonSalida.focus();
@@ -313,35 +337,35 @@ Icon iconoLimpiarTablas = new Icon("vaadin","eraser");
         comboSalonSalida.addValueChangeListener(inputEvent -> {
             txtfProfesorSalida.clear();
             txtfHR_Salida.clear();
-            if(diaSalida.equals("Lunes")||diaSalida.equals("Martes")||diaSalida.equals("Miercoles")){
-                txtfProfesorSalida.setValue(SAPDB.profePractica(SAPDB.Conexion(),comboDiaSalida.getValue(),comboHorarioSalida.getValue(),comboSalonSalida.getValue()));
-            }else{
-                txtfProfesorSalida.setValue(SAPDB.profePracticaDos(SAPDB.Conexion(),comboDiaSalida.getValue(),comboHorarioSalida.getValue(),comboSalonSalida.getValue()));
+            if (diaSalida.equals("Lunes") || diaSalida.equals("Martes") || diaSalida.equals("Miercoles")) {
+                txtfProfesorSalida.setValue(SAPDB.profePractica(SAPDB.Conexion(), comboDiaSalida.getValue(), comboHorarioSalida.getValue(), comboSalonSalida.getValue()));
+            } else {
+                txtfProfesorSalida.setValue(SAPDB.profePracticaDos(SAPDB.Conexion(), comboDiaSalida.getValue(), comboHorarioSalida.getValue(), comboSalonSalida.getValue()));
             }
 
         });
 
         comboSalon.addValueChangeListener(inputEvent -> {
-           txtfProfesor.clear();
-           txtfPractica.clear();
-           txtfHR_Entrada.clear();
-            if(diaEntrada.equals("Lunes")||diaEntrada.equals("Martes")||diaEntrada.equals("Miercoles")){
-                txtfProfesor.setValue(SAPDB.profePractica(SAPDB.Conexion(),comboDia.getValue(),comboHorario.getValue(),comboSalon.getValue()));
-            }else{
-                txtfProfesor.setValue(SAPDB.profePracticaDos(SAPDB.Conexion(),comboDia.getValue(),comboHorario.getValue(),comboSalon.getValue()));
+            txtfProfesor.clear();
+            txtfPractica.clear();
+            txtfHR_Entrada.clear();
+            if (diaEntrada.equals("Lunes") || diaEntrada.equals("Martes") || diaEntrada.equals("Miercoles")) {
+                txtfProfesor.setValue(SAPDB.profePractica(SAPDB.Conexion(), comboDia.getValue(), comboHorario.getValue(), comboSalon.getValue()));
+            } else {
+                txtfProfesor.setValue(SAPDB.profePracticaDos(SAPDB.Conexion(), comboDia.getValue(), comboHorario.getValue(), comboSalon.getValue()));
             }
 
         });
 
-        btnRegistrarEntrada.addClickListener(Click ->{
-            if(diaEntrada.equals("Lunes")||diaEntrada.equals("Martes")||diaEntrada.equals("Miercoles")){
-                SAPDB.insertarPractica(SAPDB.Conexion(),diaEntrada,horarioEntrada,comboSalon.getValue(),txtfPractica.getValue(),txtfHR_Entrada.getValue());
-                grid.setItems(SAPDB.PracticasGrid(SAPDB.Conexion(),comboDia.getValue(),comboHorario.getValue()));
-                SAPDB.tablaPractica(SAPDB.Conexion(),diaEntrada,horarioEntrada,comboSalon.getValue());
-            }else{
-                SAPDB.insertarPracticaDos(SAPDB.Conexion(),diaEntrada,horarioEntrada,comboSalon.getValue(),txtfPractica.getValue(),txtfHR_Entrada.getValue());
-                grid.setItems(SAPDB.PracticasGridDos(SAPDB.Conexion(),comboDia.getValue(),comboHorario.getValue()));
-                SAPDB.tablaPracticaDos(SAPDB.Conexion(),diaEntrada,horarioEntrada,comboSalon.getValue());
+        btnRegistrarEntrada.addClickListener(Click -> {
+            if (diaEntrada.equals("Lunes") || diaEntrada.equals("Martes") || diaEntrada.equals("Miercoles")) {
+                SAPDB.insertarPractica(SAPDB.Conexion(), diaEntrada, horarioEntrada, comboSalon.getValue(), txtfPractica.getValue(), txtfHR_Entrada.getValue());
+                grid.setItems(SAPDB.PracticasGrid(SAPDB.Conexion(), comboDia.getValue(), comboHorario.getValue()));
+                SAPDB.tablaPractica(SAPDB.Conexion(), diaEntrada, horarioEntrada, comboSalon.getValue());
+            } else {
+                SAPDB.insertarPracticaDos(SAPDB.Conexion(), diaEntrada, horarioEntrada, comboSalon.getValue(), txtfPractica.getValue(), txtfHR_Entrada.getValue());
+                grid.setItems(SAPDB.PracticasGridDos(SAPDB.Conexion(), comboDia.getValue(), comboHorario.getValue()));
+                SAPDB.tablaPracticaDos(SAPDB.Conexion(), diaEntrada, horarioEntrada, comboSalon.getValue());
             }
             txtfPractica.clear();
             txtfProfesor.clear();
@@ -351,18 +375,18 @@ Icon iconoLimpiarTablas = new Icon("vaadin","eraser");
 
         });
 
-        btnSalidaPracticas.addClickListener(Click ->{
+        btnSalidaPracticas.addClickListener(Click -> {
 
 
-            if(diaSalida.equals("Lunes")||diaSalida.equals("Martes")||diaSalida.equals("Miercoles")){
-                SAPDB.salidaPracticas(SAPDB.Conexion(),diaSalida,horarioSalida,comboSalonSalida.getValue(),Integer.parseInt(txtfAlumnosPracticas.getValue()),txtfHR_Salida.getValue());
-                gridSalida.setItems(SAPDB.PracticasGrid(SAPDB.Conexion(),diaSalida,horarioSalida));
+            if (diaSalida.equals("Lunes") || diaSalida.equals("Martes") || diaSalida.equals("Miercoles")) {
+                SAPDB.salidaPracticas(SAPDB.Conexion(), diaSalida, horarioSalida, comboSalonSalida.getValue(), Integer.parseInt(txtfAlumnosPracticas.getValue()), txtfHR_Salida.getValue());
+                gridSalida.setItems(SAPDB.PracticasGrid(SAPDB.Conexion(), diaSalida, horarioSalida));
 
-            }else{
-                SAPDB.salidaPracticasDos(SAPDB.Conexion(),diaSalida,horarioSalida,comboSalonSalida.getValue(),Integer.parseInt(txtfAlumnosPracticas.getValue()),txtfHR_Salida.getValue());
-                gridSalida.setItems(SAPDB.PracticasGridDos(SAPDB.Conexion(),diaSalida,horarioSalida));
+            } else {
+                SAPDB.salidaPracticasDos(SAPDB.Conexion(), diaSalida, horarioSalida, comboSalonSalida.getValue(), Integer.parseInt(txtfAlumnosPracticas.getValue()), txtfHR_Salida.getValue());
+                gridSalida.setItems(SAPDB.PracticasGridDos(SAPDB.Conexion(), diaSalida, horarioSalida));
             }
-            SAPDB.registroSalidas(SAPDB.Conexion(),diaSalida,horarioSalida,comboSalonSalida.getValue(),Integer.parseInt(txtfAlumnosPracticas.getValue()),txtfHR_Salida.getValue());
+            SAPDB.registroSalidas(SAPDB.Conexion(), diaSalida, horarioSalida, comboSalonSalida.getValue(), Integer.parseInt(txtfAlumnosPracticas.getValue()), txtfHR_Salida.getValue());
             txtfAlumnosPracticas.clear();
             txtfProfesorSalida.clear();
             txtfHR_Salida.clear();
@@ -371,36 +395,21 @@ Icon iconoLimpiarTablas = new Icon("vaadin","eraser");
 
         });
 
-        btnCerrarSesion.addClickListener(Click ->{
+        btnCerrarSesion.addClickListener(Click -> {
 
             VaadinSession.getCurrent().close();
 
         });
 
-        btnApartado.addClickListener(Click ->{
+        btnApartado.addClickListener(Click -> {
 
             menuEntradasySalidasApartado();
         });
 
-
-        btnConfirmarApartado.addClickListener(Click ->{
-
-            comboSalonesApartados.clear();
-            txtfProfesorApartado.clear();
-            txtfMateriaApartado.clear();
-        });
-
-        btnCancelarApartado.addClickListener(Click ->{
-
-            comboSalonesApartados.clear();
-            txtfProfesorApartado.clear();
-            txtfMateriaApartado.clear();
-
-        });
-        btnAdministracion.addClickListener(Click ->{
-            if(permisos){
+        btnAdministracion.addClickListener(Click -> {
+            if (permisos) {
                 menuAdmin();
-            }else{
+            } else {
                 Notification notiNoPermisos = Notification.show("Permisos insuficientes");
                 notiNoPermisos.addThemeVariants(NotificationVariant.LUMO_ERROR);
             }
@@ -408,7 +417,7 @@ Icon iconoLimpiarTablas = new Icon("vaadin","eraser");
 
         });
 
-        btnDescargarPracticas.addClickListener(Click ->{
+        btnDescargarPracticas.addClickListener(Click -> {
             try {
                 SAPDB.descargarLunes(SAPDB.Conexion());
                 SAPDB.descargarMartes(SAPDB.Conexion());
@@ -418,105 +427,252 @@ Icon iconoLimpiarTablas = new Icon("vaadin","eraser");
                 SAPDB.descargarSabado(SAPDB.Conexion());
                 Notification notiDescargaLunes = Notification.show("Tablas descargadas");
                 notiDescargaLunes.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-            }catch(Exception e){
+            } catch (Exception e) {
                 System.out.println(e);
             }
         });
 
-        btnDescargaLunes.addClickListener(Click ->{
+        btnDescargaLunes.addClickListener(Click -> {
             try {
                 SAPDB.descargarLunes(SAPDB.Conexion());
                 Notification notiDescargaLunes = Notification.show("Tabla descargada");
                 notiDescargaLunes.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-            }catch(Exception e){
+            } catch (Exception e) {
                 System.out.println(e);
             }
         });
 
-        btnDescargaMartes.addClickListener(Click ->{
+        btnDescargaMartes.addClickListener(Click -> {
             try {
                 SAPDB.descargarMartes(SAPDB.Conexion());
                 Notification notiDescargaMartes = Notification.show("Tabla descargada");
                 notiDescargaMartes.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-            }catch(Exception e){
+            } catch (Exception e) {
                 System.out.println(e);
             }
         });
 
-        btnDescargaMiercoles.addClickListener(Click ->{
+        btnDescargaMiercoles.addClickListener(Click -> {
             try {
                 SAPDB.descargarMiercoles(SAPDB.Conexion());
                 Notification notiDescargaMiercoles = Notification.show("Tabla descargada");
                 notiDescargaMiercoles.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-            }catch(Exception e){
+            } catch (Exception e) {
                 System.out.println(e);
             }
         });
 
-        btnDescargaJueves.addClickListener(Click ->{
+        btnDescargaJueves.addClickListener(Click -> {
             try {
                 SAPDB.descargarJueves(SAPDB.Conexion());
                 Notification notiDescargaJueves = Notification.show("Tabla descargada");
                 notiDescargaJueves.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-            }catch(Exception e){
+            } catch (Exception e) {
                 System.out.println(e);
             }
         });
 
-        btnDescargaViernes.addClickListener(Click ->{
+        btnDescargaViernes.addClickListener(Click -> {
             try {
                 Notification notiDescargaViernes = Notification.show("Tabla descargada");
                 notiDescargaViernes.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 SAPDB.descargarViernes(SAPDB.Conexion());
-            }catch(Exception e){
+            } catch (Exception e) {
                 System.out.println(e);
             }
         });
 
-        btnDescargaSabado.addClickListener(Click ->{
+        btnDescargaSabado.addClickListener(Click -> {
             try {
                 SAPDB.descargarSabado(SAPDB.Conexion());
                 Notification notiDescargaSabado = Notification.show("Tabla descargada");
                 notiDescargaSabado.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+            } catch (Exception e) {
+                System.out.println(e);
+            }
+        });
+
+        btnDescargarApartados.addClickListener(Click -> {
+            try{
+                SAPDB.descargaPrestamo(SAPDB.Conexion());
+                Notification notiPrestamo = Notification.show("Prestamo descargado");
+                notiPrestamo.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
             }catch(Exception e){
                 System.out.println(e);
             }
         });
 
         btnLimpiarTablas.addClickListener(Click -> {
-           SAPDB.limpiarTablas(SAPDB.Conexion());
+            SAPDB.limpiarTablas(SAPDB.Conexion());
         });
 
         comboDia.addValueChangeListener(inputEvent -> {
             comboHorario.clear();
-            if(comboDia.getValue().equals("Lunes")||comboDia.getValue().equals("Martes")||comboDia.getValue().equals("Miercoles")){
-                comboHorario.setItems(SAPDB.horarioUno(SAPDB.Conexion(),comboDia.getValue()));
-            }else{
-                comboHorario.setItems(SAPDB.horarioDos(SAPDB.Conexion(),comboDia.getValue()));
+            if (comboDia.getValue().equals("Lunes") || comboDia.getValue().equals("Martes") || comboDia.getValue().equals("Miercoles")) {
+                comboHorario.setItems(SAPDB.horarioUno(SAPDB.Conexion(), comboDia.getValue()));
+            } else {
+                comboHorario.setItems(SAPDB.horarioDos(SAPDB.Conexion(), comboDia.getValue()));
             }
 
         });
 
-        comboDiaSalida.addValueChangeListener(inputEvent ->{
-           comboHorarioSalida.clear();
-           if(comboDiaSalida.getValue().equals("Lunes")||comboDiaSalida.getValue().equals("Martes")||comboDiaSalida.getValue().equals("Miercoles")){
-                comboHorarioSalida.setItems(SAPDB.horarioUno(SAPDB.Conexion(),comboDiaSalida.getValue()));
-           }else{
-               comboHorarioSalida.setItems(SAPDB.horarioDos(SAPDB.Conexion(),comboDiaSalida.getValue()));
-           }
+        comboDiaSalida.addValueChangeListener(inputEvent -> {
+            comboHorarioSalida.clear();
+            if (comboDiaSalida.getValue().equals("Lunes") || comboDiaSalida.getValue().equals("Martes") || comboDiaSalida.getValue().equals("Miercoles")) {
+                comboHorarioSalida.setItems(SAPDB.horarioUno(SAPDB.Conexion(), comboDiaSalida.getValue()));
+            } else {
+                comboHorarioSalida.setItems(SAPDB.horarioDos(SAPDB.Conexion(), comboDiaSalida.getValue()));
+            }
         });
 
 
-        btnEntradasySalidasApartado.addClickListener(Click->{
+        btnEntradasySalidasApartado.addClickListener(Click -> {
 
             menuEntradasySalidasApartado();
         });
 
-        btnRegistroApartado.addClickListener(Click ->{
+        btnRegistroApartado.addClickListener(Click -> {
 
-            menuRegistrarApartado();
+            menuApartados();
         });
+
+        fechaApartado.addValueChangeListener(inputEvent -> {
+            dateApartado = fechaApartado.getValue().toString();
+
+        });
+
+        comboHorarioApartado.addValueChangeListener(inputEvent -> {
+            horarioApartado = comboHorarioApartado.getValue();
+        });
+
+        txtfDiaApartado.addValueChangeListener(inputEvent -> {
+            comboHorarioApartado.clear();
+            if (txtfDiaApartado.getValue().equals("Lunes") || txtfDiaApartado.getValue().equals("Martes") || txtfDiaApartado.getValue().equals("Miercoles")) {
+                comboHorarioApartado.setItems(SAPDB.horarioUno(SAPDB.Conexion(), txtfDiaApartado.getValue()));
+            } else {
+                comboHorarioApartado.setItems(SAPDB.horarioDos(SAPDB.Conexion(), txtfDiaApartado.getValue()));
+            }
+        });
+        timeEntradaPrestamo.addValueChangeListener(inputEvent -> {
+            timeSalidaPrestamo.setMin(timeEntradaPrestamo.getValue());
+        });
+
+        btnConfirmarApartado.addClickListener(Click -> {
+
+            String fecha = fechaApartado.getValue().toString();
+
+            if(fechaApartado.isEmpty()||timeEntradaPrestamo.isEmpty()||timeSalidaPrestamo.isEmpty()||txtfMateriaApartado.isEmpty()||txtfProfesorApartado.isEmpty()||comboSalonesApartados.isEmpty()){
+                Notification notiCamposVaciosPrestamo = Notification.show("No se permiten campos vacios");
+                notiCamposVaciosPrestamo.addThemeVariants(NotificationVariant.LUMO_ERROR);
+            }else {
+                SAPDB.registrarPrestamo(SAPDB.Conexion(),fechaApartado.getValue().toString(), timeEntradaPrestamo.getValue().toString(),timeSalidaPrestamo.getValue().toString(), txtfMateriaApartado.getValue().toUpperCase(), txtfProfesorApartado.getValue().toUpperCase(), comboSalonesApartados.getValue());
+                comboSalonesApartados.clear();
+                txtfProfesorApartado.clear();
+                txtfMateriaApartado.clear();
+                fechaApartado.clear();
+                timeEntrada.clear();
+                timeSalida.clear();
+            }
+        });
+
+        btnBuscarEntradaApartado.addClickListener(Click -> {
+            gridEntradaApartado.setItems(SAPDB.gridPrestamosEntrada(SAPDB.Conexion(),fechaEntradaApartado.getValue().toString(),timeEntrada.getValue().toString()));
+            comboSalonesEntradaApartado.setItems(SAPDB.comboSalonApartadoEntrada(SAPDB.Conexion(),fechaEntradaApartado.getValue().toString(),timeEntrada.getValue().toString()));
+            fechaApartadoEntrada = fechaEntradaApartado.getValue().toString();
+            hrEntradaApartado = timeEntrada.getValue().toString();
+        });
+
+        btnBuscarSalidaApartado.addClickListener(Click ->{
+            gridSalidaApartado.setItems(SAPDB.gridPrestamoSalida(SAPDB.Conexion(),fechaSalidaApartado.getValue().toString(),timeSalida.getValue().toString()));
+            comboSalonesSalidaApartado.setItems(SAPDB.comboSalonApartadoSalida(SAPDB.Conexion(),fechaSalidaApartado.getValue().toString(),timeSalida.getValue().toString()));
+            fechaApartadoSalida = fechaSalidaApartado.getValue().toString();
+            hrSalidaApartado = timeSalida.getValue().toString();
+        });
+
+        fechaApartadoBuscar.addValueChangeListener(inputEvent ->{
+            txtfDiaApartado.setValue(SAPDB.getDiaSemana(Date.valueOf(fechaApartadoBuscar.getValue())));
+        });
+
+        comboSalonesEntradaApartado.addValueChangeListener(inputEvent -> {
+            txtfProfesorEntradaApartado.setValue(SAPDB.profesorEntradaApartados(SAPDB.Conexion(),fechaApartadoEntrada,hrEntradaApartado,comboSalonesEntradaApartado.getValue()));
+        });
+
+        comboSalonesSalidaApartado.addValueChangeListener(inputEvent -> {
+           txtfProfesorSalidaApartado.setValue(SAPDB.profesorSalidaApartados(SAPDB.Conexion(),fechaApartadoSalida,hrSalidaApartado,comboSalonesSalidaApartado.getValue()));
+        });
+
+        txtfPracticaEntradaApartado.addInputListener(inputEvent ->{
+            LocalDateTime entradaPrestamo = LocalDateTime.now();
+            int hoursEntradaPrestamo = entradaPrestamo.getHour();
+            int minutesEntradaPrestamo = entradaPrestamo.getMinute();
+            if (minutesEntradaPrestamo < 10) {
+                txtfHoraEntradaApartado.setValue((hoursEntradaPrestamo) + ":0" +(minutesEntradaPrestamo));
+            } else {
+                txtfHoraEntradaApartado.setValue((hoursEntradaPrestamo) + ":" +(minutesEntradaPrestamo));
+            }
+        });
+
+        txtfAlumnosSalidaApartado.addInputListener(inputEvent -> {
+            LocalDateTime salidaPrestamo = LocalDateTime.now();
+            int hoursSalidaPrestamo = salidaPrestamo.getHour();
+            int minutesSalidaPrestamo = salidaPrestamo.getMinute();
+            if (minutesSalidaPrestamo < 10) {
+                txtfHoraSalidaApartado.setValue((hoursSalidaPrestamo) + ":0" +(minutesSalidaPrestamo));
+            } else {
+                txtfHoraSalidaApartado.setValue((hoursSalidaPrestamo) + ":" +(minutesSalidaPrestamo));
+            }
+        });
+
+        btnLimpiarEntradaPrestamo.addClickListener(Click ->{
+
+            txtfPracticaEntradaApartado.setValue("");
+            txtfProfesorEntradaApartado.setValue("");
+            txtfHoraEntradaApartado.setValue("");
+            txtfAlumnosSalidaApartado.clear();
+            txtfProfesorSalidaApartado.clear();
+            txtfHoraSalidaApartado.clear();
+            comboSalonesSalidaApartado.setValue("");
+            comboSalonesEntradaApartado.setValue("");
+
+        });
+
+        btnEntradaApartado.addClickListener(Click -> {
+
+            SAPDB.entradaPrestamos(SAPDB.Conexion(),fechaApartadoEntrada,hrEntradaApartado,comboSalonesEntradaApartado.getValue(),txtfPracticaEntradaApartado.getValue(),txtfHoraEntradaApartado.getValue());
+            SAPDB.practicaPrestamoEntrada(SAPDB.Conexion(),fechaEntradaApartado.getValue(),timeEntrada.getValue().toString(),comboSalonesEntradaApartado.getValue());
+            gridEntradaApartado.setItems(SAPDB.gridPrestamosEntrada(SAPDB.Conexion(),fechaApartadoEntrada,hrEntradaApartado));
+            txtfPracticaEntradaApartado.clear();
+            txtfProfesorEntradaApartado.clear();
+            txtfHoraEntradaApartado.clear();
+            comboSalonesEntradaApartado.focus();
+            comboSalonesEntradaApartado.clear();
+
+        });
+
+        btnSalidaApartado.addClickListener(Click ->{
+            SAPDB.salidaPrestamos(SAPDB.Conexion(),Integer.parseInt(txtfAlumnosSalidaApartado.getValue()),txtfHoraSalidaApartado.getValue(),hrSalidaApartado,fechaApartadoSalida,comboSalonesSalidaApartado.getValue());
+            gridSalidaApartado.setItems(SAPDB.gridPrestamoSalida(SAPDB.Conexion(),fechaApartadoSalida,hrSalidaApartado));
+            SAPDB.practicaPrestamoSalida(SAPDB.Conexion(),fechaSalidaApartado.getValue(),timeSalida.getValue().toString(),comboSalonesSalidaApartado.getValue(),Integer.parseInt(txtfAlumnosSalidaApartado.getValue()),txtfHoraSalidaApartado.getValue());
+            txtfAlumnosSalidaApartado.clear();
+            txtfProfesorSalidaApartado.clear();
+            txtfHoraSalidaApartado.clear();
+            comboSalonesSalidaApartado.focus();
+            comboSalonesSalidaApartado.clear();
+
+
+        });
+
+        btnBuscarApartado.addClickListener(Click -> {
+           if(txtfDiaApartado.getValue().equals("Lunes")||txtfDiaApartado.getValue().equals("Martes")||txtfDiaApartado.getValue().equals("Miercoles")){
+               gridPrestamoRegistro.setItems(SAPDB.gridRegistrarApartadoUno(SAPDB.Conexion(),txtfDiaApartado.getValue(),comboHorarioApartado.getValue(),fechaApartadoBuscar.getValue()));
+           }else{
+               gridPrestamoRegistro.setItems(SAPDB.gridRegistrarApartadoDos(SAPDB.Conexion(), txtfDiaApartado.getValue(), comboHorarioApartado.getValue(),fechaApartadoBuscar.getValue()));
+           }
+           });
+
+
     }
+
     private void menuLogin(){
         //Imagen login
         Image img = new Image("images/login.png", "login");
@@ -599,6 +755,7 @@ Icon iconoLimpiarTablas = new Icon("vaadin","eraser");
         txtfAlumnosPracticas.setWidth("90px");
         txtfProfesorSalida.setWidth("350px");
         comboSalonSalida.setWidth("150px");
+        comboDiaSalida.setWidth("130px");
         grid.setHeight("270px");
         gridSalida.setHeight("270px");
         //Permisis de escritura
@@ -625,14 +782,8 @@ Icon iconoLimpiarTablas = new Icon("vaadin","eraser");
         txtfProfesorSalida.setReadOnly(true);
         //Opciones de combobox
         comboDia.setItems("Lunes","Martes","Miercoles","Jueves","Viernes","Sabado");
-        //comboDia.setValue("Lunes");
-        //comboHorario.setItems("7:00-8:59","9:00-10:59","11:00-12:59","13:00-14:59","16:00-17:59","18:00-19:59","20:00-21:59");
-        //comboHorario.setValue("7:00-8:59");
         comboDiaSalida.setItems("Lunes","Martes","Miercoles","Jueves","Viernes","Sabado");
-        //comboDiaSalida.setValue("Lunes");
-        //comboHorarioSalida.setItems("7:00-8:59","9:00-10:59","11:00-12:59","13:00-14:59","16:00-17:59","18:00-19:59","20:00-21:59");
-        //comboHorarioSalida.setValue("7:00-8:59");
-        //grid
+
         grid.addColumn(Practica::getHorario).setHeader("Horario").setAutoWidth(true);
         grid.addColumn(Practica::getProfesor).setHeader("Profesor").setAutoWidth(true);
         grid.addColumn(Practica::getMateria).setHeader("Materia").setAutoWidth(true);
@@ -694,19 +845,27 @@ Icon iconoLimpiarTablas = new Icon("vaadin","eraser");
                 layoutEliminar
         );
     }
-
-    private void menuRegistrarApartado(){
+    private void menuApartados(){
         removeAll();
         menuBotonoes();
-       // menuApartados();
-        //Layouts horizontales de menu registrar apartado
-        HorizontalLayout layoutRegistrarApartado1 = new HorizontalLayout(fechaApartado,comboHorarioApartado,btnBuscarApartado);
-        HorizontalLayout layoutRegistrarApartado2 = new HorizontalLayout(comboSalonesApartados,txtfProfesorApartado,txtfMateriaApartado);
-        HorizontalLayout layoutRegistrarApartado3 = new HorizontalLayout(btnConfirmarApartado,btnCancelarApartado);
+        gridPrestamoRegistro.removeAllColumns();
+        //Layout horizontales del menu Apartado
+        HorizontalLayout layoutApartado0 = new HorizontalLayout(headerBusquedaApartado);
+        HorizontalLayout layoutApartado1 = new HorizontalLayout(fechaApartadoBuscar,txtfDiaApartado,comboHorarioApartado,btnBuscarApartado);
+        HorizontalLayout layoutApartado2 = new HorizontalLayout(headerRegistroApartado);
+        HorizontalLayout layoutApartado3 = new HorizontalLayout(fechaApartado,timeEntradaPrestamo,timeSalidaPrestamo);
+        HorizontalLayout layoutApartado4 = new HorizontalLayout(comboSalonesApartados,txtfProfesorApartado,txtfMateriaApartado,btnConfirmarApartado);
         //Alinear layouts
-        layoutRegistrarApartado1.setDefaultVerticalComponentAlignment(Alignment.BASELINE);
-        layoutRegistrarApartado2.setDefaultVerticalComponentAlignment(Alignment.BASELINE);
-        layoutRegistrarApartado3.setDefaultVerticalComponentAlignment(Alignment.BASELINE);
+        layoutApartado1.setDefaultVerticalComponentAlignment(Alignment.BASELINE);
+        layoutApartado4.setDefaultVerticalComponentAlignment(Alignment.BASELINE);
+        timeEntradaPrestamo.setLabel("Entrada");
+        timeSalidaPrestamo.setLabel("Salida");
+        timeEntradaPrestamo.setStep(Duration.ofMinutes(30));
+        timeSalidaPrestamo.setStep(Duration.ofMinutes(30));
+        timeEntradaPrestamo.setMin(LocalTime.of(7,0));
+        timeEntradaPrestamo.setMax(LocalTime.of(21,30));
+        timeSalidaPrestamo.setMin(LocalTime.of(7,30));
+        timeSalidaPrestamo.setMax(LocalTime.of(22,0));
         //Estilo de botones
         btnConfirmarApartado.addThemeVariants(ButtonVariant.LUMO_SUCCESS,ButtonVariant.LUMO_PRIMARY);
         btnConfirmarApartado.setIcon(iconoConfirmarApartado);
@@ -718,15 +877,27 @@ Icon iconoLimpiarTablas = new Icon("vaadin","eraser");
         txtfProfesorApartado.setWidth("350px");
         comboSalonesApartados.setWidth("150px");
         fechaApartado.setWidth("150px");
-        comboHorarioApartado.setWidth("150px");
+        comboHorarioApartado.setWidth("170px");
         //Opciones de combo
-        comboHorarioApartado.setItems("7:00-8:59","9:00-10:59","11:00-12:59","13:00-14:59","16:00-17:59","18:00-19:59","20:00-21:59");
-        comboHorarioApartado.setValue("7:00-8:59");
+        comboSalonesApartados.setItems(SAPDB.salonesPrestamos(SAPDB.Conexion()));
+        //comboDiaApartado.setItems("Lunes","Martes","Miercoles","Jueves","Viernes","Sabado");
+        //comboHorarioApartado.setItems("7:00-8:59","9:00-10:59","11:00-12:59","13:00-14:59","16:00-17:59","18:00-19:59","20:00-21:59");
+        txtfDiaApartado.setWidth("130px");
+        txtfDiaApartado.setReadOnly(true);
+        //
+        gridPrestamoRegistro.addColumn(Apartado::getSalon).setAutoWidth(true).setHeader("Salon");
+        gridPrestamoRegistro.addColumn(Apartado::getHorario).setAutoWidth(true).setHeader("Horario");
+        gridPrestamoRegistro.addColumn(Apartado::getProfesor).setAutoWidth(true).setHeader("Profesor");
+        gridPrestamoRegistro.addColumn(Apartado::getFecha).setAutoWidth(true).setHeader("Fecha");
+        //Scroll
+        Div divPrestamoRegistro = new Div(layoutApartado0,layoutApartado1,layoutApartado2,layoutApartado3,layoutApartado4,gridPrestamoRegistro);
+        divPrestamoRegistro.setSizeFull();
+        Scroller scroll = new Scroller(divPrestamoRegistro);
+        scroll.setScrollDirection(Scroller.ScrollDirection.VERTICAL);
+        scroll.setSizeFull();
         //Agregar componentes
         add(
-                layoutRegistrarApartado1,
-                layoutRegistrarApartado2,
-                layoutRegistrarApartado3
+                scroll
         );
     }
 
@@ -737,10 +908,23 @@ Icon iconoLimpiarTablas = new Icon("vaadin","eraser");
         gridEntradaApartado.removeAllColumns();
         gridSalidaApartado.removeAllColumns();
         //Layouts horizontales de menu entradas y salidas de apartado
-        HorizontalLayout layoutEntradaApartado1 = new HorizontalLayout(fechaEntradaApartado,comboHorarioEntradaApartado,btnBuscarEntradaApartado);
-        HorizontalLayout layoutEntradaApartado2 = new HorizontalLayout(comboSalonesEntradaApartado,txtfPracticaEntradaApartado,txtfProfesorEntradaApartado,txtfHoraEntradaApartado,btnEntradaApartado);
-        HorizontalLayout layoutSalidaApartado1 = new HorizontalLayout(fechaSalidaApartado,comboHorarioSalidaApartado,btnBuscarSalidaApartado);
+        HorizontalLayout layoutEntradaApartado1 = new HorizontalLayout(fechaEntradaApartado,timeEntrada,btnBuscarEntradaApartado);
+        HorizontalLayout layoutEntradaApartado2 = new HorizontalLayout(comboSalonesEntradaApartado,txtfPracticaEntradaApartado,txtfProfesorEntradaApartado,txtfHoraEntradaApartado,btnEntradaApartado,btnLimpiarEntradaPrestamo);
+        HorizontalLayout layoutSalidaApartado1 = new HorizontalLayout(fechaSalidaApartado,timeSalida,btnBuscarSalidaApartado);
         HorizontalLayout layoutSalidaApartado2 = new HorizontalLayout(comboSalonesSalidaApartado,txtfAlumnosSalidaApartado,txtfProfesorSalidaApartado,txtfHoraSalidaApartado,btnSalidaApartado);
+        //time
+        timeEntrada.setWidth("100px");
+        timeSalida.setWidth("100px");
+        txtfAlumnosSalidaApartado.setWidth("100px");
+        timeEntrada.setLabel("Entrada");
+        timeSalida.setLabel("Salida");
+        timeEntrada.setStep(Duration.ofMinutes(30));
+        timeSalida.setStep(Duration.ofMinutes(30));
+        timeEntrada.setMin(LocalTime.of(7,0));
+        timeEntrada.setMax(LocalTime.of(21,30));
+        timeSalida.setMin(LocalTime.of(7,30));
+        timeSalida.setMax(LocalTime.of(22,0));
+        btnLimpiarEntradaPrestamo.addClickShortcut(Key.ESCAPE);
         //Alinear layouts
         layoutEntradaApartado1.setDefaultVerticalComponentAlignment(Alignment.BASELINE);
         layoutEntradaApartado2.setDefaultVerticalComponentAlignment(Alignment.BASELINE);
@@ -776,6 +960,7 @@ Icon iconoLimpiarTablas = new Icon("vaadin","eraser");
         btnEntradaApartado.setIcon(iconoEntradaApartado);
         btnSalidaApartado.addThemeVariants(ButtonVariant.LUMO_PRIMARY,ButtonVariant.LUMO_ERROR);
         btnSalidaApartado.setIcon(iconoSalidaApartado);
+        btnLimpiarEntradaPrestamo.addThemeVariants(ButtonVariant.LUMO_CONTRAST,ButtonVariant.LUMO_PRIMARY);
         //Grid entrada apartado
         gridEntradaApartado.addColumn(Apartado::getFecha).setHeader("Fecha").setAutoWidth(true);
         gridEntradaApartado.addColumn(Apartado::getHorario).setHeader("Horario").setAutoWidth(true);
@@ -805,17 +990,15 @@ Icon iconoLimpiarTablas = new Icon("vaadin","eraser");
 
         //Agregar componentes
         add(
-
                 scrollApartado
         );
     }
-
     private void menuAdmin(){
         removeAll();
         menuBotonoes();
         //Layouts
         HorizontalLayout H1 = new HorizontalLayout(headerDescargaPracticas);
-        HorizontalLayout H2 = new HorizontalLayout(btnDescargarPracticas);
+        HorizontalLayout H2 = new HorizontalLayout(btnDescargarPracticas,btnDescargarApartados);
         HorizontalLayout H3 = new HorizontalLayout(headerDescargarindividaul);
         HorizontalLayout H4 = new HorizontalLayout(btnDescargaLunes,btnDescargaMartes,btnDescargaMiercoles,btnDescargaJueves,btnDescargaViernes,btnDescargaSabado);
         HorizontalLayout H5 = new HorizontalLayout(headerLimpiarTablas);
@@ -828,6 +1011,7 @@ Icon iconoLimpiarTablas = new Icon("vaadin","eraser");
         btnDescargaViernes.addThemeVariants(ButtonVariant.LUMO_CONTRAST,ButtonVariant.LUMO_PRIMARY);
         btnDescargaSabado.addThemeVariants(ButtonVariant.LUMO_CONTRAST,ButtonVariant.LUMO_PRIMARY);
         btnLimpiarTablas.addThemeVariants(ButtonVariant.LUMO_CONTRAST,ButtonVariant.LUMO_PRIMARY);
+        btnDescargarApartados.addThemeVariants(ButtonVariant.LUMO_CONTRAST,ButtonVariant.LUMO_PRIMARY);
         btnLimpiarTablas.setIcon(iconoLimpiarTablas);
         add(H1,H2,H3,H4,H5,btnLimpiarTablas);
     }

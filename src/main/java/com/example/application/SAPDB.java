@@ -1,4 +1,5 @@
 package com.example.application;
+import com.example.application.model.Apartado;
 import com.example.application.model.Practica;
 import com.example.application.model.Usuario;
 import com.mysql.cj.*;
@@ -8,7 +9,12 @@ import org.aspectj.weaver.ast.Not;
 
 import java.awt.*;
 import java.sql.*;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.List;
 
 public class SAPDB {
@@ -544,6 +550,19 @@ public class SAPDB {
 
     }
 
+    public static void descargaPrestamo(Connection con){
+        try{
+            PreparedStatement ps;
+            ps = con.prepareStatement("SELECT * FROM practicaprestamo into OUTFILE 'C:/Users/ajg_0/OneDrive/Documentos/Practica_Prestamo.csv' FIELDS TERMINATED BY ',' ENCLOSED BY '\"' LINES TERMINATED BY '\\n';");
+            ps.execute();
+            con.close();
+        }catch(SQLException e){
+            Notification notiDescargaLunesError = Notification.show("Error en la descarga sabado");
+            notiDescargaLunesError.addThemeVariants(NotificationVariant.LUMO_ERROR);
+            System.out.println(e);
+        }
+    }
+
     public static void limpiarTablas(Connection con){
 
         try{
@@ -563,6 +582,8 @@ public class SAPDB {
             ps = con.prepareStatement("DELETE FROM practicaviernes");
             ps.execute();
             ps = con.prepareStatement("DELETE FROM practicasabado");
+            ps.execute();
+            ps = con.prepareStatement("DELETE FROM practicaprestamo");
             ps.execute();
             con.close();
             Notification notiLimpiar = Notification.show("Tablas limpias");
@@ -593,6 +614,7 @@ public class SAPDB {
             while(registro.next()){
                 listaHorario.add(registro.getString(1));
             }
+            con.close();
 
         }catch(SQLException ex){
             System.out.println(ex);
@@ -618,12 +640,323 @@ public class SAPDB {
             while(registro.next()){
                 listaHorario.add(registro.getString(1));
             }
+            con.close();
 
         }catch(SQLException ex){
             System.out.println(ex);
         }
 
         return listaHorario;
+    }
+
+    public static void registrarPrestamo(Connection con,String fecha,String hrEntrada,String hrSalida,String materia,String profesor,String salon){
+        try{
+            PreparedStatement ps;
+            ps=con.prepareStatement("INSERT INTO registroprestamos(Fecha,HrEntrada,HrSalida,Materia,Profesor,Salon) VALUES (?,?,?,?,?,?)");
+            ps.setString(1,fecha);
+            ps.setString(2,hrEntrada);
+            ps.setString(3,hrSalida);
+            ps.setString(4,materia);
+            ps.setString(5,profesor);
+            ps.setString(6,salon);
+            ps.execute();
+            Notification notiApartado = Notification.show("Apartado confirmado");
+            notiApartado.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+            con.close();
+        }catch(SQLException e){
+            System.out.println(e);
+            Notification notiNoApartado = Notification.show("Error");
+            notiNoApartado.addThemeVariants(NotificationVariant.LUMO_ERROR);
+        }
+    }
+
+    public static List gridPrestamosEntrada(Connection con,String fecha,String horaEntrada){
+        List<Apartado> listaPrestamos = new ArrayList<>();
+        try{
+
+            Statement consulta = con.createStatement();
+            ResultSet registro = consulta.executeQuery("SELECT Fecha,CONCAT(HrEntrada,'-',HrSalida) AS 'Horario',Profesor,Materia,Salon,Practica,Entrada,Asistencia,Salida \n" +
+                    "FROM `registroprestamos`\n" +
+                    "WHERE Fecha='"+fecha+"' AND HrEntrada='"+horaEntrada+"';");
+
+            while(registro.next()){
+                Apartado gridApartado = new Apartado(registro.getString(1),registro.getString(2),registro.getString(3),registro.getString(4),registro.getString(5),registro.getString(6),registro.getString(7),registro.getInt(8),registro.getString(9));
+                listaPrestamos.add(gridApartado);
+            }
+            con.close();
+
+        }catch(SQLException e){
+            System.out.println(e);
+        }
+        return listaPrestamos;
+    }
+
+    public static List gridPrestamoSalida(Connection con,String fecha,String horaSalida){
+        List<Apartado> listaPrestamos = new ArrayList<>();
+        try{
+
+            Statement consulta = con.createStatement();
+            ResultSet registro = consulta.executeQuery("SELECT Fecha,CONCAT(HrEntrada,'-',HrSalida) AS 'Horario',Profesor,Materia,Salon,Practica,Entrada,Asistencia,Salida \n" +
+                    "FROM `registroprestamos`\n" +
+                    "WHERE Fecha='"+fecha+"' AND HrSalida='"+horaSalida+"';");
+
+            while(registro.next()){
+                Apartado gridApartadoSalida = new Apartado(registro.getString(1),registro.getString(2),registro.getString(3),registro.getString(4),registro.getString(5),registro.getString(6),registro.getString(7),registro.getInt(8),registro.getString(9));
+                listaPrestamos.add(gridApartadoSalida);
+            }
+            con.close();
+
+        }catch(SQLException e){
+            System.out.println(e);
+        }
+        return listaPrestamos;
+    }
+
+    public static String getDiaSemana(Date date){
+
+        int diaNumero = date.getDay();
+        String dia=null;
+
+        switch (diaNumero){
+            case 1:{
+                dia="Lunes";
+                break;
+            }
+            case 2:{
+                dia="Martes";
+                break;
+            }
+            case 3:{
+                dia="Miercoles";
+                break;
+            }
+            case 4:{
+                dia="Jueves";
+                break;
+            }
+            case 5:{
+                dia="Viernes";
+                break;
+            }
+            case 6:{
+                dia="Sabado";
+                break;
+            }
+
+        }
+
+        return dia;
+
+    }
+
+    public static List comboSalonApartadoEntrada(Connection con,String fecha,String hrEntrada){
+        List<String> listaSalon = new ArrayList<>();
+        try{
+            Statement consulta = con.createStatement();
+            ResultSet registro = consulta.executeQuery("SELECT Salon FROM registroPrestamos WHERE Fecha='"+fecha+"' AND HrEntrada='"+hrEntrada+"';");
+            while(registro.next()){
+                listaSalon.add(registro.getString(1));
+            }
+            con.close();
+        }catch(SQLException e){
+            System.out.println(e);
+        }
+        return  listaSalon;
+    }
+
+    public static List comboSalonApartadoSalida(Connection con,String fecha,String hrSalida){
+        List<String> listaSalon = new ArrayList<>();
+        try{
+            Statement consulta = con.createStatement();
+            ResultSet registro = consulta.executeQuery("SELECT Salon FROM registroPrestamos WHERE Fecha='"+fecha+"' AND HrSalida='"+hrSalida+"';");
+            while(registro.next()){
+                listaSalon.add(registro.getString(1));
+            }
+            con.close();
+        }catch(SQLException e){
+            System.out.println(e);
+        }
+        return  listaSalon;
+    }
+
+    public static String profesorEntradaApartados(Connection con,String fecha,String hrEntrada,String salon){
+        String profesor = null;
+        try{
+            Statement consulta = con.createStatement();
+            ResultSet registro = consulta.executeQuery("SELECT Profesor FROM registroPrestamos WHERE Fecha='"+fecha+"' AND HrEntrada='"+hrEntrada+"' AND Salon='"+salon+"';");
+            while(registro.next()){
+                profesor=registro.getString(1);
+            }
+            con.close();
+        }catch(SQLException e){
+            System.out.println(e);
+        }
+        return  profesor;
+    }
+
+    public static String profesorSalidaApartados(Connection con,String fecha,String hrSalida,String salon){
+        String profesor = null;
+        try{
+            Statement consulta = con.createStatement();
+            ResultSet registro = consulta.executeQuery("SELECT Profesor FROM registroPrestamos WHERE Fecha='"+fecha+"' AND HrSalida='"+hrSalida+"' AND Salon='"+salon+"';");
+            while(registro.next()){
+                profesor=registro.getString(1);
+            }
+            con.close();
+        }catch(SQLException e){
+            System.out.println(e);
+        }
+        return  profesor;
+    }
+
+    public static List salonesPrestamos(Connection con){
+        List<String> listaSalones = new ArrayList<>();
+        try{
+            Statement consulta = con.createStatement();
+            ResultSet registro = consulta.executeQuery("SELECT SALON FROM SALON ORDER BY idSalon ASC;");
+            while(registro.next()){
+                listaSalones.add(registro.getString(1));
+            }
+            con.close();
+        }catch(SQLException e){
+            System.out.println(e);
+        }
+        return  listaSalones;
+    }
+
+    public static void entradaPrestamos(Connection con,String fecha,String hrEntrada,String salon,String practica,String hrEntradaClase){
+
+        try{
+            PreparedStatement ps;
+            ps=con.prepareStatement("UPDATE registroprestamos SET practica = ?, Entrada = ? WHERE HrEntrada=? AND Fecha=? AND Salon=?;");
+            ps.setString(1,practica);
+            ps.setString(2,hrEntradaClase);
+            ps.setString(3,hrEntrada);
+            ps.setString(4,fecha);
+            ps.setString(5,salon);
+            ps.execute();
+            Notification notiApartado = Notification.show("Entrada registrada");
+            notiApartado.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+            con.close();
+        }catch(SQLException e){
+            System.out.println(e);
+            Notification notiNoApartado = Notification.show("Error");
+            notiNoApartado.addThemeVariants(NotificationVariant.LUMO_ERROR);
+        }
+
+    }
+
+    public static void salidaPrestamos(Connection con,int asistencia,String salida,String hrSalida,String fecha,String salon){
+
+        try{
+            PreparedStatement ps;
+            ps=con.prepareStatement("UPDATE registroprestamos SET Asistencia = ?, Salida = ? WHERE HrSalida=? AND Fecha=? AND Salon=?;");
+            ps.setInt(1,asistencia);
+            ps.setString(2,salida);
+            ps.setString(3,hrSalida);
+            ps.setString(4,fecha);
+            ps.setString(5,salon);
+            ps.execute();
+            Notification notiApartado = Notification.show("Salida registrada");
+            notiApartado.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+            con.close();
+        }catch(SQLException e){
+            System.out.println(e);
+            Notification notiNoApartado = Notification.show("Error");
+            notiNoApartado.addThemeVariants(NotificationVariant.LUMO_ERROR);
+        }
+
+    }
+
+    public static List<Apartado> gridRegistrarApartadoUno(Connection con,String dia,String horario,LocalDate fecha){
+        List<Apartado> listApartado = new ArrayList<>();
+        try{
+            Statement consulta = con.createStatement();
+            ResultSet registro = consulta.executeQuery("SELECT S.Salon,H.Horario,concat(P.nombre,' ',P.paterno,' ',P.materno)\n" +
+                    "FROM practicauno AS PRAC\n" +
+                    "INNER JOIN materia as M ON M.idMateria=PRAC.idMateria\n" +
+                    "INNER JOIN profesor as P ON P.idProfesor=M.idProfesor\n" +
+                    "INNER JOIN salon AS S ON S.idSalon=M.idSalon\n" +
+                    "INNER JOIN horario as H ON h.idHorario=PRAC."+dia+"\n" +
+                    "WHERE NOT PRAC."+dia+"= 8 AND H.horario='"+horario+"';");
+            while(registro.next()){
+                Apartado gridApartadoRegistro= new Apartado(registro.getString(1),registro.getString(2),registro.getString(3));
+                listApartado.add(gridApartadoRegistro);
+            }
+            registro = consulta.executeQuery("SELECT Salon, CONCAT(HrEntrada,'-',HrSalida),Profesor,Fecha\n" +
+                    "FROM registroprestamos WHERE Fecha = '"+fecha+"'");
+            while(registro.next()){
+                Apartado gridApartado = new Apartado(registro.getString(1), registro.getString(2), registro.getString(3), registro.getString(4));
+                listApartado.add(gridApartado);
+            }
+            con.close();
+        }catch(SQLException e){
+
+        }
+        return listApartado;
+    }
+
+    public static List<Apartado> gridRegistrarApartadoDos(Connection con, String dia, String horario, LocalDate fecha){
+        List<Apartado> listApartado = new ArrayList<>();
+        try{
+            Statement consulta = con.createStatement();
+            ResultSet registro = consulta.executeQuery("SELECT S.Salon,H.Horario,concat(P.nombre,' ',P.paterno,' ',P.materno)\n" +
+                    "FROM practicados AS PRAC\n" +
+                    "INNER JOIN materia as M ON M.idMateria=PRAC.idMateria\n" +
+                    "INNER JOIN profesor as P ON P.idProfesor=M.idProfesor\n" +
+                    "INNER JOIN salon AS S ON S.idSalon=M.idSalon\n" +
+                    "INNER JOIN horario as H ON h.idHorario=PRAC."+dia+"\n" +
+                    "WHERE NOT PRAC."+dia+"= 8 AND H.horario='"+horario+"';");
+            while(registro.next()){
+                Apartado gridApartadoRegistro= new Apartado(registro.getString(1),registro.getString(2),registro.getString(3));
+                listApartado.add(gridApartadoRegistro);
+            }
+            registro = consulta.executeQuery("SELECT Salon, CONCAT(HrEntrada,'-',HrSalida),Profesor,Fecha\n" +
+                    "FROM registroprestamos WHERE Fecha = '"+fecha+"'");
+            while(registro.next()){
+                Apartado gridApartado = new Apartado(registro.getString(1), registro.getString(2), registro.getString(3), registro.getString(4));
+                listApartado.add(gridApartado);
+            }
+            con.close();
+        }catch(SQLException e){
+            System.out.println(e);
+        }
+        return listApartado;
+    }
+
+    public static void practicaPrestamoEntrada(Connection con,LocalDate date,String hrentrada,String salon){
+
+        try {
+            PreparedStatement ps;
+            ps = con.prepareStatement("INSERT INTO  practicaprestamo(Fecha,HrEntrada,HrSalida,Materia,Profesor,Salon,Practica,Entrada)\n" +
+                    "SELECT Fecha,HrEntrada,HrSalida,Materia,Profesor,Salon,Practica,Entrada FROM registroprestamos\n" +
+                    "WHERE Fecha='"+date+"' AND HrEntrada=? AND Salon =?");
+            ps.setString(1,hrentrada);
+            ps.setString(2,salon);
+            ps.execute();
+            con.close();
+        }catch(SQLException e){
+            System.out.println(e);
+        }
+
+    }
+
+    public static void practicaPrestamoSalida(Connection con,LocalDate date,String hrsalida,String salon,int asistencia,String salida){
+
+        try {
+            PreparedStatement ps;
+            ps = con.prepareStatement("UPDATE practicaprestamo\n" +
+                    "SET Asistencia=?,Salida=?\n" +
+                    "WHERE Fecha='"+date+"' AND HrSalida=? AND Salon =?");
+            ps.setInt(1,asistencia);
+            ps.setString(2,salida);
+            ps.setString(3,hrsalida);
+            ps.setString(4,salon);
+            ps.execute();
+            con.close();
+        }catch(SQLException e){
+            System.out.println(e);
+        }
 
     }
 

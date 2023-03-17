@@ -26,6 +26,19 @@ public class Apartado {
         HoraSalida = horaSalida;
     }
 
+    public Apartado( String salon, String horario, String profesor,String fecha) {
+        this.fecha = fecha;
+        this.horario = horario;
+        this.profesor = profesor;
+        this.salon = salon;
+    }
+
+    public Apartado( String salon, String horario, String profesor) {
+        this.horario = horario;
+        this.profesor = profesor;
+        this.salon = salon;
+    }
+
     public String getFecha() {
         return fecha;
     }
