@@ -960,4 +960,27 @@ public class SAPDB {
 
     }
 
+    public static void limpiarBD(Connection con){
+
+        try{
+            PreparedStatement ps;
+            ps = con.prepareStatement("DELETE FROM practicauno");
+            ps.execute();
+            ps = con.prepareStatement("DELETE FROM practicados");
+            ps.execute();
+            ps = con.prepareStatement("DELETE FROM registroprestamos");
+            ps.execute();
+            ps = con.prepareStatement("DELETE FROM materia");
+            ps.execute();
+            con.close();
+            Notification notiBD = Notification.show("BD limpia");
+            notiBD.addThemeVariants(NotificationVariant.LUMO_SUCCESS,NotificationVariant.LUMO_PRIMARY);
+        }catch(SQLException e){
+            System.out.println(e);
+            Notification notiError = Notification.show("Error");
+            notiError.addThemeVariants(NotificationVariant.LUMO_ERROR,NotificationVariant.LUMO_PRIMARY);
+        }
+
+    }
+
 }

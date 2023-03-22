@@ -8,6 +8,7 @@ import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.charts.themes.LumoLightTheme;
+import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.combobox.ComboBoxVariant;
 import com.vaadin.flow.component.datepicker.DatePicker;
@@ -164,7 +165,7 @@ Icon iconoDescargarPracticas = new Icon("lumo","arrow-down");
 Icon iconoMenuAdmin = new Icon("vaadin","sliders");
 H3 headerDescargaPracticas = new H3("Descargar todas las tablas");
 H3 headerDescargarindividaul = new H3("Descarga individual");
-H3 headerLimpiarTablas = new H3("Limpiar tablas");
+H3 headerLimpiarTablas = new H3("Limpiar");
 Button btnDescargaLunes = new Button("Lunes");
 Button btnDescargaMartes = new Button("Martes");
 Button btnDescargaMiercoles = new Button("Miercoles");
@@ -172,6 +173,8 @@ Button btnDescargaJueves = new Button("Jueves");
 Button btnDescargaViernes = new Button("Viernes");
 Button btnDescargaSabado = new Button("Sabado");
 Button btnLimpiarTablas = new Button("Limpiar tablas");
+Button btnFinCuatri = new Button("Limpiar BD");
+Checkbox chkFinCuatri = new Checkbox();
 Icon iconoLimpiarTablas = new Icon("vaadin","eraser");
 String fechaApartadoEntrada;
 String hrEntradaApartado;
@@ -670,6 +673,18 @@ Button btnLimpiarEntradaPrestamo = new Button("Limpiar");
            }
            });
 
+        chkFinCuatri.addValueChangeListener(inputEvent -> {
+           if(chkFinCuatri.getValue().equals(true)) {
+               btnFinCuatri.setEnabled(true);
+           }else{
+               btnFinCuatri.setEnabled(false);
+           }
+        });
+
+        btnFinCuatri.addClickListener(Click -> {
+
+        });
+
 
     }
 
@@ -1002,7 +1017,11 @@ Button btnLimpiarEntradaPrestamo = new Button("Limpiar");
         HorizontalLayout H3 = new HorizontalLayout(headerDescargarindividaul);
         HorizontalLayout H4 = new HorizontalLayout(btnDescargaLunes,btnDescargaMartes,btnDescargaMiercoles,btnDescargaJueves,btnDescargaViernes,btnDescargaSabado);
         HorizontalLayout H5 = new HorizontalLayout(headerLimpiarTablas);
-        //Botones
+        HorizontalLayout H6 = new HorizontalLayout(btnLimpiarTablas,chkFinCuatri,btnFinCuatri);
+        //Botones estilo
+        chkFinCuatri.setLabel("Habilitar");
+        btnFinCuatri.addThemeVariants(ButtonVariant.LUMO_ERROR,ButtonVariant.LUMO_PRIMARY);
+        btnFinCuatri.setEnabled(false);
         btnDescargarPracticas.addThemeVariants(ButtonVariant.LUMO_CONTRAST,ButtonVariant.LUMO_PRIMARY);
         btnDescargaLunes.addThemeVariants(ButtonVariant.LUMO_CONTRAST,ButtonVariant.LUMO_PRIMARY);
         btnDescargaMartes.addThemeVariants(ButtonVariant.LUMO_CONTRAST,ButtonVariant.LUMO_PRIMARY);
@@ -1013,6 +1032,6 @@ Button btnLimpiarEntradaPrestamo = new Button("Limpiar");
         btnLimpiarTablas.addThemeVariants(ButtonVariant.LUMO_CONTRAST,ButtonVariant.LUMO_PRIMARY);
         btnDescargarApartados.addThemeVariants(ButtonVariant.LUMO_CONTRAST,ButtonVariant.LUMO_PRIMARY);
         btnLimpiarTablas.setIcon(iconoLimpiarTablas);
-        add(H1,H2,H3,H4,H5,btnLimpiarTablas);
+        add(H1,H2,H3,H4,H5,H6);
     }
 }
